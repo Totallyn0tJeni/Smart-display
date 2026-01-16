@@ -14,6 +14,7 @@ export const photos = pgTable("photos", {
   id: serial("id").primaryKey(),
   url: text("url").notNull(),
   caption: text("caption"),
+  source: text("source").default("local"), // "local", "vsco"
 });
 
 export const focusSessions = pgTable("focus_sessions", {

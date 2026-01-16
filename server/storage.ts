@@ -57,7 +57,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPhoto(photo: InsertPhoto): Promise<Photo> {
-    const [newPhoto] = await db.insert(photos).values(photo).returning();
+    const [newPhoto] = await db.insert(photos).values({
+      ...photo,
+      source: photo.source || "local"
+    }).returning();
     return newPhoto;
   }
 

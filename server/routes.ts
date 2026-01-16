@@ -57,6 +57,18 @@ export async function registerRoutes(
     }
   });
 
+  // VSCO Simulation Endpoint
+  app.post("/api/vsco/import", async (req, res) => {
+    const { url } = req.body;
+    // Mock import logic
+    const photo = await storage.createPhoto({
+      url: url || "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80",
+      caption: "Imported from VSCO",
+      source: "vsco"
+    });
+    res.json(photo);
+  });
+
   // Seed data on startup
   await seedDatabase();
 
