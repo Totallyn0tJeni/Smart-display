@@ -1,38 +1,59 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+import { db } from "./db";
+import {
+  ledStates,
+  photos,
+  type InsertLedState,
+  type UpdateLedStateRequest,
+  type LedState,
+  type Photo,
+  type InsertPhoto
+} from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  getLedState(): Promise<LedState | undefined>;
+  updateLedState(updates: UpdateLedStateRequest): Promise<LedState>;
+  
+  getPhotos(): Promise<Photo[]>;
+  createPhoto(photo: InsertPhoto): Promise<Photo>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-
-  constructor() {
-    this.users = new Map();
+export class DatabaseStorage implements IStorage {
+  async getLedState(): Promise<LedState | undefined> {
+    const [state] = await db.select().from(ledStates).limit(1);
+    return state;
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async updateLedState(updates: UpdateLedStateRequest): Promise<LedState> {
+    // Check if state exists, if not create default
+    let [existing] = await db.select().from(ledStates).limit(1);
+    
+    if (!existing) {
+      const [created] = await db.insert(ledStates).values({
+        color: "#ffffff",
+        mode: "static",
+        brightness: 100,
+        isOn: true,
+        ...updates
+      }).returning();
+      return created;
+    }
+
+    const [updated] = await db.update(ledStates)
+      .set(updates)
+      .where(eq(ledStates.id, existing.id))
+      .returning();
+    return updated;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  async getPhotos(): Promise<Photo[]> {
+    return await db.select().from(photos);
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async createPhoto(photo: InsertPhoto): Promise<Photo> {
+    const [newPhoto] = await db.insert(photos).values(photo).returning();
+    return newPhoto;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
