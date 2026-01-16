@@ -60,6 +60,45 @@ export async function registerRoutes(
   // Seed data on startup
   await seedDatabase();
 
+  // Focus Session Routes
+  app.get(api.focus.current.path, async (req, res) => {
+    const session = await storage.getCurrentFocusSession();
+    res.json(session || null);
+  });
+
+  app.post(api.focus.start.path, async (req, res) => {
+    try {
+      const input = api.focus.start.input.parse(req.body);
+      const session = await storage.startFocusSession(input);
+      res.status(201).json(session);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+          field: err.errors[0].path.join('.'),
+        });
+      }
+      throw err;
+    }
+  });
+
+  app.post(api.focus.stop.path, async (req, res) => {
+    await storage.stopFocusSession();
+    res.json({ success: true });
+  });
+
+  // Weather Route
+  app.get(api.weather.get.path, async (req, res) => {
+    // Mock weather data
+    res.json({
+      temp: 22,
+      condition: "Partly Cloudy",
+      location: "San Francisco, CA",
+      high: 25,
+      low: 18
+    });
+  });
+
   return httpServer;
 }
 

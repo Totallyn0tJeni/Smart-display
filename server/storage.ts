@@ -2,13 +2,16 @@ import { db } from "./db";
 import {
   ledStates,
   photos,
+  focusSessions,
   type InsertLedState,
   type UpdateLedStateRequest,
   type LedState,
   type Photo,
-  type InsertPhoto
+  type InsertPhoto,
+  type FocusSession,
+  type InsertFocusSession
 } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export interface IStorage {
   getLedState(): Promise<LedState | undefined>;
@@ -16,6 +19,10 @@ export interface IStorage {
   
   getPhotos(): Promise<Photo[]>;
   createPhoto(photo: InsertPhoto): Promise<Photo>;
+
+  startFocusSession(session: InsertFocusSession): Promise<FocusSession>;
+  getCurrentFocusSession(): Promise<FocusSession | undefined>;
+  stopFocusSession(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -25,7 +32,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateLedState(updates: UpdateLedStateRequest): Promise<LedState> {
-    // Check if state exists, if not create default
     let [existing] = await db.select().from(ledStates).limit(1);
     
     if (!existing) {
@@ -53,6 +59,22 @@ export class DatabaseStorage implements IStorage {
   async createPhoto(photo: InsertPhoto): Promise<Photo> {
     const [newPhoto] = await db.insert(photos).values(photo).returning();
     return newPhoto;
+  }
+
+  async startFocusSession(session: InsertFocusSession): Promise<FocusSession> {
+    // Stop any existing active sessions
+    await this.stopFocusSession();
+    const [newSession] = await db.insert(focusSessions).values(session).returning();
+    return newSession;
+  }
+
+  async getCurrentFocusSession(): Promise<FocusSession | undefined> {
+    const [session] = await db.select().from(focusSessions).where(eq(focusSessions.isActive, true)).limit(1);
+    return session;
+  }
+
+  async stopFocusSession(): Promise<void> {
+    await db.update(focusSessions).set({ isActive: false }).where(eq(focusSessions.isActive, true));
   }
 }
 
