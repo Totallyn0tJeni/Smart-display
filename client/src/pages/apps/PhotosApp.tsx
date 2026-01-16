@@ -1,96 +1,122 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { usePhotos } from "@/hooks/use-photos";
-import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Upload, Plus, Trash2, Image as ImageIcon, ExternalLink } from "lucide-react";
+import { api } from "@shared/routes";
 import { GlassCard } from "@/components/GlassCard";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface PhotosAppProps {
   onClose: () => void;
 }
 
-const FALLBACK_PHOTOS = [
-  "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=1920&h=1080&fit=crop", /* Alpine lake landscape */
-  "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=1920&h=1080&fit=crop", /* Misty mountains */
-  "https://images.unsplash.com/photo-1518173946687-a4c88928d999?w=1920&h=1080&fit=crop", /* Starry night sky */
-  "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=1920&h=1080&fit=crop", /* Green rolling hills */
-];
-
 export function PhotosApp({ onClose }: PhotosAppProps) {
-  const { data: apiPhotos, isLoading } = usePhotos();
-  const photos = apiPhotos && apiPhotos.length > 0 ? apiPhotos.map(p => p.url) : FALLBACK_PHOTOS;
-  
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [newPhotoUrl, setNewPhotoUrl] = useState("");
+  const [newCaption, setNewCaption] = useState("");
+  const [source, setSource] = useState<"local" | "vsco">("local");
+  const { toast } = useToast();
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isPlaying) {
-      interval = setInterval(() => {
-        setCurrentIndex((prev) => (prev + 1) % photos.length);
-      }, 5000); // 5 seconds per slide
+  const { data: photos, isLoading } = useQuery({
+    queryKey: [api.photos.list.path],
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async () => {
+      if (!newPhotoUrl) throw new Error("URL is required");
+      return apiRequest("POST", api.photos.create.path, {
+        url: newPhotoUrl,
+        caption: newCaption,
+        source
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.photos.list.path] });
+      setNewPhotoUrl("");
+      setNewCaption("");
+      toast({ title: "Photo added successfully" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Failed to add photo", description: error.message, variant: "destructive" });
     }
-    return () => clearInterval(interval);
-  }, [isPlaying, photos.length]);
+  });
 
-  const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % photos.length);
-    setIsPlaying(false);
-  };
-
-  const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + photos.length) % photos.length);
-    setIsPlaying(false);
-  };
-
-  if (isLoading) return <div className="flex items-center justify-center h-full text-white">Loading gallery...</div>;
+  const vscoImportMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("POST", "/api/vsco/import", { url: newPhotoUrl });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.photos.list.path] });
+      setNewPhotoUrl("");
+      toast({ title: "Imported from VSCO" });
+    }
+  });
 
   return (
-    <div className="w-full h-full relative group">
-      {/* Main Image Display */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentIndex}
-          initial={{ opacity: 0, scale: 1.05 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1 }}
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${photos[currentIndex]})` }}
-        >
-          <div className="absolute inset-0 bg-black/20" /> {/* Slight overlay for text readability */}
-        </motion.div>
-      </AnimatePresence>
+    <div className="flex-1 p-8 flex flex-col gap-8 overflow-y-auto">
+      <div className="flex flex-col gap-6">
+        <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+          <ImageIcon className="w-6 h-6" /> Gallery Manager
+        </h2>
 
-      {/* Controls Overlay - Shows on Hover */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-8">
-        <div className="flex justify-between items-start">
-          <GlassCard variant="card" className="px-4 py-2">
-            <h2 className="text-white font-medium">Memory {currentIndex + 1} / {photos.length}</h2>
-          </GlassCard>
-        </div>
+        <GlassCard className="p-6 bg-white/5 border-white/10 flex flex-col gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-xs uppercase tracking-widest text-white/50">Image URL</label>
+              <Input 
+                value={newPhotoUrl} 
+                onChange={(e) => setNewPhotoUrl(e.target.value)}
+                placeholder="https://..." 
+                className="bg-white/5 border-white/10 text-white"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs uppercase tracking-widest text-white/50">Caption</label>
+              <Input 
+                value={newCaption} 
+                onChange={(e) => setNewCaption(e.target.value)}
+                placeholder="A beautiful memory..." 
+                className="bg-white/5 border-white/10 text-white"
+              />
+            </div>
+          </div>
+          
+          <div className="flex gap-3">
+            <Button 
+              onClick={() => createMutation.mutate()} 
+              disabled={createMutation.isPending}
+              className="flex-1 bg-white/10 hover:bg-white/20 text-white border border-white/20"
+            >
+              <Plus className="w-4 h-4 mr-2" /> Add Photo
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => vscoImportMutation.mutate()}
+              disabled={vscoImportMutation.isPending}
+              className="flex-1 border-white/10 bg-black/20 text-white hover:bg-black/40"
+            >
+              <ExternalLink className="w-4 h-4 mr-2" /> Import VSCO
+            </Button>
+          </div>
+        </GlassCard>
+      </div>
 
-        <div className="flex items-center justify-center gap-8">
-           <button onClick={prevSlide} className="p-4 rounded-full bg-black/30 text-white backdrop-blur-md hover:bg-white/20 transition-all">
-             <ChevronLeft className="w-8 h-8" />
-           </button>
-           
-           <button onClick={() => setIsPlaying(!isPlaying)} className="p-6 rounded-full bg-white/10 text-white backdrop-blur-md border border-white/30 hover:bg-white/20 transition-all scale-100 hover:scale-105 active:scale-95">
-             {isPlaying ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 fill-current ml-1" />}
-           </button>
-
-           <button onClick={nextSlide} className="p-4 rounded-full bg-black/30 text-white backdrop-blur-md hover:bg-white/20 transition-all">
-             <ChevronRight className="w-8 h-8" />
-           </button>
-        </div>
-
-        <div className="flex justify-center gap-2">
-          {photos.map((_, idx) => (
-            <div 
-              key={idx}
-              className={`h-1 rounded-full transition-all duration-300 ${idx === currentIndex ? 'w-8 bg-white' : 'w-2 bg-white/30'}`}
-            />
-          ))}
-        </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {photos?.map((photo: any) => (
+          <motion.div
+            key={photo.id}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="group relative aspect-square rounded-xl overflow-hidden border border-white/10"
+          >
+            <img src={photo.url} alt={photo.caption} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
+              <p className="text-xs text-white font-medium truncate">{photo.caption || "No caption"}</p>
+              <span className="text-[10px] text-white/50 uppercase tracking-tighter">{photo.source}</span>
+            </div>
+          </motion.div>
+        ))}
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import {
   Cloud,
   Moon,
   Sun,
+  Film,
   X
 } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -24,12 +25,14 @@ import { CalendarApp } from "./apps/CalendarApp";
 import { LightsApp } from "./apps/LightsApp";
 import { FlocusApp } from "./apps/FlocusApp";
 import { WeatherApp } from "./apps/WeatherApp";
+import { MoviesApp } from "./apps/MoviesApp";
 
-type AppType = "spotify" | "photos" | "calendar" | "lights" | "flocus" | "weather" | null;
+type AppType = "spotify" | "photos" | "calendar" | "lights" | "flocus" | "weather" | "movies" | null;
 
 const APPS = [
   { id: "weather", icon: Cloud, label: "Weather", color: "from-sky-400/50 to-blue-500/50" },
   { id: "photos", icon: ImageIcon, label: "Photos", color: "from-pink-500/50 to-rose-500/50" },
+  { id: "movies", icon: Film, label: "Movies", color: "from-indigo-600/50 to-violet-600/50" },
   { id: "calendar", icon: CalendarIcon, label: "Calendar", color: "from-blue-500/50 to-cyan-500/50" },
   { id: "spotify", icon: Music, label: "Spotify", color: "from-green-500/50 to-emerald-500/50" },
   { id: "lights", icon: Lightbulb, label: "Lights", color: "from-yellow-500/50 to-orange-500/50" },
@@ -68,6 +71,7 @@ export default function Home() {
       case "lights": return <LightsApp onClose={() => setActiveApp(null)} />;
       case "flocus": return <FlocusApp onClose={() => setActiveApp(null)} />;
       case "weather": return <WeatherApp onClose={() => setActiveApp(null)} />;
+      case "movies": return <MoviesApp onClose={() => setActiveApp(null)} />;
       default: return null;
     }
   };

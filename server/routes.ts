@@ -4,6 +4,43 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 
+// ================= LED HARDWARE LOGIC (Raspberry Pi Simulation) =================
+// In a real RPi environment, you would use a library like 'pigpio' or 'onoff'
+// to control physical pins 17 (R), 27 (G), 22 (B).
+function applyRgbHardware(r: number, g: number, b: number) {
+  // console.log(`Applying Hardware RGB: [${r}, ${g}, ${b}]`);
+}
+
+function ledHardwareLoop() {
+  setInterval(async () => {
+    const state = await storage.getLedState();
+    if (!state || !state.isOn) {
+      applyRgbHardware(0, 0, 0);
+      return;
+    }
+
+    const t = Date.now() / 50; // Similar to the 0.05s sleep in original code
+    const hex = state.color.replace("#", "");
+    const rBase = parseInt(hex.substring(0, 2), 16);
+    const gBase = parseInt(hex.substring(2, 4), 16);
+    const bBase = parseInt(hex.substring(4, 6), 16);
+
+    if (state.mode === "static") {
+      applyRgbHardware(rBase, gBase, bBase);
+    } else if (state.mode === "pulse") {
+      const v = Math.abs((t % 100) - 50) * 5;
+      applyRgbHardware(v, v, v);
+    } else if (state.mode === "fade") {
+      applyRgbHardware((t * 3) % 255, (t * 5) % 255, (t * 7) % 255);
+    } else if (state.mode === "sunrise") {
+      applyRgbHardware(Math.min(t * 2, 255), Math.min(t, 120), Math.min(t / 3, 60));
+    }
+  }, 50);
+}
+
+// Start the hardware simulation loop
+ledHardwareLoop();
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
