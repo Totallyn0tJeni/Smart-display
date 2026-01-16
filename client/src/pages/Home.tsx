@@ -8,8 +8,14 @@ import {
   Calendar as CalendarIcon, 
   Lightbulb,
   Timer,
+  Cloud,
+  Moon,
+  Sun,
   X
 } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { api } from "@shared/routes";
 
 // App Components
 import { SpotifyApp } from "./apps/SpotifyApp";
@@ -17,10 +23,12 @@ import { PhotosApp } from "./apps/PhotosApp";
 import { CalendarApp } from "./apps/CalendarApp";
 import { LightsApp } from "./apps/LightsApp";
 import { FlocusApp } from "./apps/FlocusApp";
+import { WeatherApp } from "./apps/WeatherApp";
 
-type AppType = "spotify" | "photos" | "calendar" | "lights" | "flocus" | null;
+type AppType = "spotify" | "photos" | "calendar" | "lights" | "flocus" | "weather" | null;
 
 const APPS = [
+  { id: "weather", icon: Cloud, label: "Weather", color: "from-sky-400/50 to-blue-500/50" },
   { id: "photos", icon: ImageIcon, label: "Photos", color: "from-pink-500/50 to-rose-500/50" },
   { id: "calendar", icon: CalendarIcon, label: "Calendar", color: "from-blue-500/50 to-cyan-500/50" },
   { id: "spotify", icon: Music, label: "Spotify", color: "from-green-500/50 to-emerald-500/50" },
@@ -31,6 +39,27 @@ const APPS = [
 export default function Home() {
   const [activeApp, setActiveApp] = useState<AppType>(null);
 
+  const { data: ledState } = useQuery({
+    queryKey: [api.led.get.path],
+  });
+
+  const ledMutation = useMutation({
+    mutationFn: async (updates: any) => {
+      return apiRequest("POST", api.led.update.path, updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.led.get.path] });
+    },
+  });
+
+  const toggleNightMode = () => {
+    const isNight = ledState?.mode === "pulse";
+    ledMutation.mutate({
+      mode: isNight ? "static" : "pulse",
+      color: isNight ? "#ffffff" : "#1a1a2e",
+    });
+  };
+
   const renderApp = () => {
     switch (activeApp) {
       case "spotify": return <SpotifyApp onClose={() => setActiveApp(null)} />;
@@ -38,12 +67,24 @@ export default function Home() {
       case "calendar": return <CalendarApp onClose={() => setActiveApp(null)} />;
       case "lights": return <LightsApp onClose={() => setActiveApp(null)} />;
       case "flocus": return <FlocusApp onClose={() => setActiveApp(null)} />;
+      case "weather": return <WeatherApp onClose={() => setActiveApp(null)} />;
       default: return null;
     }
   };
 
+  const isNightMode = ledState?.mode === "pulse";
+
   return (
-    <div className="min-h-screen w-full relative overflow-hidden flex flex-col">
+    <div className={`min-h-screen w-full relative overflow-hidden flex flex-col transition-colors duration-1000 ${isNightMode ? "bg-[#0a0a1a]" : "bg-transparent"}`}>
+      {/* Night Mode Toggle */}
+      <div className="absolute top-6 right-6 z-50">
+        <button
+          onClick={toggleNightMode}
+          className="p-3 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-all duration-300"
+        >
+          {isNightMode ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
+        </button>
+      </div>
       {/* Main Dashboard Content */}
       <AnimatePresence>
         {!activeApp && (
