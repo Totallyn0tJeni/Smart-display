@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Display</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div id="top-bar">
+  <span>Smart Display</span>
+  <button onclick="toggleDarkMode()">🌙</button>
+</div>
+
+<!-- MAIN APP -->
+<div id="app-container">
+
+  <!-- HOME SCREEN -->
+  <div id="home" class="screen active">
+    <div id="clock-panel" class="glass-card">
+      <div id="time">12:00</div>
+      <div id="date">Monday, January 1</div>
+    </div>
+
+    <div id="icons-panel" class="glass-card">
+      <div class="icon" onclick="openApp('photos')">🖼️<span>Photos</span></div>
+      <div class="icon" onclick="openApp('calendar')">📅<span>Calendar</span></div>
+      <div class="icon" onclick="openApp('spotify')">🎵<span>Spotify</span></div>
+      <div class="icon" onclick="openApp('led')">💡<span>Lights</span></div>
+    </div>
+  </div>
+
+  <!-- PHOTOS SCREEN -->
+  <div id="photos" class="screen glass-card">
+    <button class="back" onclick="goHome()">← Home</button>
+    <div id="photo-container"></div>
+  </div>
+
+  <!-- CALENDAR SCREEN -->
+  <div id="calendar" class="screen glass-card">
+    <button class="back" onclick="goHome()">← Home</button>
+    <iframe
+      src="https://calendar.google.com/calendar/embed?src=YOUR_EMAIL%40gmail.com&ctz=America/Toronto"
+      allowfullscreen>
+    </iframe>
+  </div>
+
+  <!-- SPOTIFY SCREEN -->
+  <div id="spotify" class="screen glass-card">
+    <button class="back" onclick="goHome()">← Home</button>
+    <iframe
+      src="https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M"
+      allow="encrypted-media">
+    </iframe>
+  </div>
+
+  <!-- LED SCREEN -->
+  <div id="led" class="screen glass-card">
+    <button class="back" onclick="goHome()">← Home</button>
+    <div id="led-panel">
+      <h2>LED Color</h2>
+      <input type="color" onchange="setLEDColor(this.value)">
+      <h2>LED Effects</h2>
+      <div class="led-buttons">
+        <button onclick="setEffect('static')">Static</button>
+        <button onclick="setEffect('pulse')">Pulse</button>
+        <button onclick="setEffect('fade')">Fade</button>
+        <button onclick="setEffect('sunrise')">Sunrise</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

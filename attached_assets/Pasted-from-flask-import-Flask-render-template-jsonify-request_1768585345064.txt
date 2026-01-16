@@ -1,0 +1,84 @@
+from flask import Flask, render_template, jsonify, request, send_from_directory
+import threading, time, os
+from datetime import datetime
+
+USE_GPIO = True
+app = Flask(__name__)
+
+# ================= LED =================
+LED_MODE = "static"
+LED_COLOR = (255,255,255)
+RUNNING = True
+
+if USE_GPIO:
+    try:
+        import RPi.GPIO as GPIO
+        R,G,B = 17,27,22
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup([R,G,B],GPIO.OUT)
+        pr,pg,pb = GPIO.PWM(R,100),GPIO.PWM(G,100),GPIO.PWM(B,100)
+        pr.start(0); pg.start(0); pb.start(0)
+    except:
+        USE_GPIO=False
+
+def apply_rgb(r,g,b):
+    if not USE_GPIO: return
+    pr.ChangeDutyCycle(r/255*100)
+    pg.ChangeDutyCycle(g/255*100)
+    pb.ChangeDutyCycle(b/255*100)
+
+def led_loop():
+    global LED_MODE, LED_COLOR
+    t=0
+    while RUNNING:
+        if LED_MODE=="static":
+            apply_rgb(*LED_COLOR)
+        elif LED_MODE=="pulse":
+            v=abs((t%100)-50)*5
+            apply_rgb(v,v,v)
+        elif LED_MODE=="fade":
+            apply_rgb((t*3)%255,(t*5)%255,(t*7)%255)
+        elif LED_MODE=="sunrise":
+            apply_rgb(min(t*2,255), min(t,120), min(t//3,60))
+        t+=1
+        time.sleep(0.05)
+
+threading.Thread(target=led_loop,daemon=True).start()
+
+def auto_led_mode():
+    global LED_MODE
+    while True:
+        hour = datetime.now().hour
+        if 6 <= hour < 9:
+            LED_MODE="sunrise"
+        elif 21<=hour or hour<6:
+            LED_MODE="pulse"
+        time.sleep(300)
+
+threading.Thread(target=auto_led_mode,daemon=True).start()
+
+# ================= ROUTES =================
+@app.route("/")
+def index(): return render_template("index.html")
+
+@app.route("/api/led",methods=["POST"])
+def led():
+    global LED_MODE, LED_COLOR
+    data = request.json
+    LED_MODE = data.get("mode", LED_MODE)
+    if "color" in data:
+        LED_COLOR = tuple(data["color"])
+    return jsonify(ok=True)
+
+@app.route("/api/photos")
+def photos():
+    folder="photos"
+    if not os.path.exists(folder): os.makedirs(folder)
+    return jsonify(os.listdir(folder))
+
+@app.route("/photos/<filename>")
+def photo_file(filename):
+    return send_from_directory("photos", filename)
+
+if __name__=="__main__":
+    app.run(host="0.0.0.0",port=5000)

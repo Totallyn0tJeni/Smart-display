@@ -1,0 +1,128 @@
+const screens = ["home","photos","calendar","spotify","led"];
+let current = 0;
+let idleTimer;
+const IDLE_TIME = 45000; // 45 seconds
+let photos = [];
+let slideshowInterval;
+
+// ================ NAVIGATION =================
+function openApp(id){
+  stopSlideshow(); // stop screensaver when opening app
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  current = screens.indexOf(id);
+  resetIdle();
+}
+
+function goHome(){ openApp("home"); }
+
+// ================ DARK MODE =================
+function toggleDarkMode(){
+  document.body.classList.toggle("night");
+  fetch(`/api/night/${document.body.classList.contains("night") ? "on":"off"}`);
+}
+
+// ================ CLOCK =================
+function updateClock(){
+  const now = new Date();
+  document.getElementById("time").innerText = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  document.getElementById("date").innerText = now.toLocaleDateString(undefined, {weekday:'long', month:'long', day:'numeric'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ================ PHOTOS =================
+function loadPhotos(){
+  fetch("/api/photos")
+    .then(res=>res.json())
+    .then(images=>{
+      photos = images; // store for slideshow
+      const container=document.getElementById("photo-container");
+      container.innerHTML="";
+      images.forEach(img=>{
+        const el=document.createElement("img");
+        el.src=`/photos/${img}`;
+        container.appendChild(el);
+      });
+    });
+}
+
+// ================ LED =================
+function setLEDColor(hex){
+  const n=parseInt(hex.replace("#",""),16);
+  const rgb=[(n>>16)&255,(n>>8)&255,n&255];
+  fetch("/api/led",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({enabled:true,color:rgb})});
+}
+
+function setEffect(mode){
+  fetch("/api/led",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode})});
+}
+
+// ================ IDLE / SCREENSAVER =================
+function resetIdle(){
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(()=> {
+    goHome();
+    setEffect("pulse"); // optional LED effect
+    startSlideshow();
+  }, IDLE_TIME);
+}
+
+// Stop the slideshow if user interacts
+function stopSlideshow(){
+  if(slideshowInterval){
+    clearInterval(slideshowInterval);
+    slideshowInterval = null;
+    const container = document.getElementById("photo-container");
+    container.innerHTML = "";
+    photos.forEach(img=>{
+      const el=document.createElement("img");
+      el.src=`/photos/${img}`;
+      container.appendChild(el);
+    });
+  }
+}
+
+["click","touchstart","mousemove"].forEach(e=>{
+  document.addEventListener(e, ()=>{
+    stopSlideshow();
+    resetIdle();
+  });
+});
+resetIdle();
+
+// ================ SLIDESHOW =================
+function startSlideshow(){
+  if(photos.length === 0) return;
+  const container = document.getElementById("photo-container");
+  container.innerHTML = "";
+  let index = 0;
+
+  const imgEl = document.createElement("img");
+  imgEl.style.width = "100%";
+  imgEl.style.borderRadius = "16px";
+  container.appendChild(imgEl);
+
+  slideshowInterval = setInterval(()=>{
+    imgEl.src = `/photos/${photos[index]}`;
+    index = (index+1)%photos.length;
+  }, 5000); // change every 5 seconds
+}
+
+// ================ SWIPE =================
+let startX = 0;
+document.addEventListener("touchstart", e=>startX = e.touches[0].clientX);
+document.addEventListener("touchend", e=>{
+  const dx = e.changedTouches[0].clientX - startX;
+  if(Math.abs(dx)>80) navigate(dx<0?1:-1);
+});
+function navigate(dir){
+  current = Math.max(0, Math.min(screens.length-1, current+dir));
+  openApp(screens[current]);
+}
+
+// ================ INIT =================
+document.addEventListener("DOMContentLoaded", ()=>{
+  goHome();
+  loadPhotos();
+});
