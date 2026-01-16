@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { insertLedStateSchema, insertPhotoSchema, ledStates, photos } from './schema';
+import { insertLedStateSchema, insertPhotoSchema, ledStates, photos, insertFocusSessionSchema, focusSessions } from './schema';
 
 export const errorSchemas = {
   validation: z.object({
@@ -25,7 +25,7 @@ export const api = {
       },
     },
     update: {
-      method: 'POST' as const, // Using POST for simple updates as per original requirements
+      method: 'POST' as const,
       path: '/api/led',
       input: insertLedStateSchema.partial(),
       responses: {
@@ -49,6 +49,46 @@ export const api = {
       responses: {
         201: z.custom<typeof photos.$inferSelect>(),
         400: errorSchemas.validation,
+      },
+    },
+  },
+  focus: {
+    start: {
+      method: 'POST' as const,
+      path: '/api/focus/start',
+      input: insertFocusSessionSchema,
+      responses: {
+        201: z.custom<typeof focusSessions.$inferSelect>(),
+        400: errorSchemas.validation,
+      },
+    },
+    current: {
+      method: 'GET' as const,
+      path: '/api/focus/current',
+      responses: {
+        200: z.custom<typeof focusSessions.$inferSelect>().nullable(),
+      },
+    },
+    stop: {
+      method: 'POST' as const,
+      path: '/api/focus/stop',
+      responses: {
+        200: z.object({ success: z.boolean() }),
+      },
+    },
+  },
+  weather: {
+    get: {
+      method: 'GET' as const,
+      path: '/api/weather',
+      responses: {
+        200: z.object({
+          temp: z.number(),
+          condition: z.string(),
+          location: z.string(),
+          high: z.number(),
+          low: z.number(),
+        }),
       },
     },
   },

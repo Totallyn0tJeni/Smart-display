@@ -1,4 +1,4 @@
-import { pgTable, text, serial, boolean, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, boolean, integer, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -16,12 +16,22 @@ export const photos = pgTable("photos", {
   caption: text("caption"),
 });
 
+export const focusSessions = pgTable("focus_sessions", {
+  id: serial("id").primaryKey(),
+  duration: integer("duration").notNull(), // in minutes
+  startTime: timestamp("start_time").defaultNow().notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+});
+
 export const insertLedStateSchema = createInsertSchema(ledStates).omit({ id: true });
 export const insertPhotoSchema = createInsertSchema(photos).omit({ id: true });
+export const insertFocusSessionSchema = createInsertSchema(focusSessions).omit({ id: true, startTime: true });
 
 export type LedState = typeof ledStates.$inferSelect;
 export type InsertLedState = z.infer<typeof insertLedStateSchema>;
 export type Photo = typeof photos.$inferSelect;
 export type InsertPhoto = z.infer<typeof insertPhotoSchema>;
+export type FocusSession = typeof focusSessions.$inferSelect;
+export type InsertFocusSession = z.infer<typeof insertFocusSessionSchema>;
 
 export type UpdateLedStateRequest = Partial<InsertLedState>;
