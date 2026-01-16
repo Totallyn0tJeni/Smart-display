@@ -7,6 +7,7 @@ import {
   Image as ImageIcon, 
   Calendar as CalendarIcon, 
   Lightbulb,
+  Timer,
   X
 } from "lucide-react";
 
@@ -15,14 +16,16 @@ import { SpotifyApp } from "./apps/SpotifyApp";
 import { PhotosApp } from "./apps/PhotosApp";
 import { CalendarApp } from "./apps/CalendarApp";
 import { LightsApp } from "./apps/LightsApp";
+import { FlocusApp } from "./apps/FlocusApp";
 
-type AppType = "spotify" | "photos" | "calendar" | "lights" | null;
+type AppType = "spotify" | "photos" | "calendar" | "lights" | "flocus" | null;
 
 const APPS = [
   { id: "photos", icon: ImageIcon, label: "Photos", color: "from-pink-500/50 to-rose-500/50" },
   { id: "calendar", icon: CalendarIcon, label: "Calendar", color: "from-blue-500/50 to-cyan-500/50" },
   { id: "spotify", icon: Music, label: "Spotify", color: "from-green-500/50 to-emerald-500/50" },
   { id: "lights", icon: Lightbulb, label: "Lights", color: "from-yellow-500/50 to-orange-500/50" },
+  { id: "flocus", icon: Timer, label: "Flocus", color: "from-indigo-500/50 to-purple-500/50" },
 ] as const;
 
 export default function Home() {
@@ -34,6 +37,7 @@ export default function Home() {
       case "photos": return <PhotosApp onClose={() => setActiveApp(null)} />;
       case "calendar": return <CalendarApp onClose={() => setActiveApp(null)} />;
       case "lights": return <LightsApp onClose={() => setActiveApp(null)} />;
+      case "flocus": return <FlocusApp onClose={() => setActiveApp(null)} />;
       default: return null;
     }
   };
