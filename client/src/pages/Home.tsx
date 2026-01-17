@@ -66,15 +66,24 @@ const APPS = [
 ] as const;
 
 const PRESET_BACKGROUNDS = [
-  { name: "Default", color: "#000000", url: null },
-  { name: "Deep Space", color: "#0a0a1a", url: "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?auto=format&fit=crop&w=1920&q=80" },
-  { name: "Sunset", color: "#2d1b2d", url: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&w=1920&q=80" },
-  { name: "Forest", color: "#1a241a", url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1920&q=80" },
-  { name: "Nordic Lake", color: "#1a2a3a", url: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=1920&q=80" },
+  { name: "Deep Space", color: "#0a0a1a", url: "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?auto=format&fit=crop&w=1920&q=80", gradient: null },
+  { name: "Sunset", color: "#2d1b2d", url: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&w=1920&q=80", gradient: null },
+  { name: "Forest", color: "#1a241a", url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1920&q=80", gradient: null },
+];
+
+const PRESET_GRADIENTS = [
+  { name: "Original", gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" },
+  { name: "Ocean", gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)" },
+  { name: "Nature", gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)" },
+  { name: "Twilight", gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)" },
+  { name: "Midnight", gradient: "linear-gradient(135deg, #243949 0%, #517fa4 100%)" },
+  { name: "Deep Purple", gradient: "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)" },
 ];
 
 export default function Home() {
   const [activeApp, setActiveApp] = useState<AppType>(null);
+  const [customStart, setCustomStart] = useState("#667eea");
+  const [customEnd, setCustomEnd] = useState("#764ba2");
 
   const { data: ledState } = useQuery({
     queryKey: [api.led.get.path],
@@ -108,25 +117,82 @@ export default function Home() {
       case "movies": return <MoviesApp onClose={() => setActiveApp(null)} />;
       case "youtube": return <YouTubeApp onClose={() => setActiveApp(null)} />;
       case "settings": return (
-        <div className="p-8 flex flex-col gap-6">
-          <h2 className="text-2xl font-bold text-white">Appearance</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {PRESET_BACKGROUNDS.map((bg) => (
-              <button
-                key={bg.name}
-                onClick={() => ledMutation.mutate({ backgroundUrl: bg.url, backgroundColor: bg.color })}
-                className="group relative aspect-video rounded-xl overflow-hidden border border-white/10"
-              >
-                {bg.url ? (
+        <div className="p-8 flex flex-col gap-8 overflow-y-auto">
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold text-white">Preset Backgrounds</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {PRESET_BACKGROUNDS.map((bg) => (
+                <button
+                  key={bg.name}
+                  onClick={() => ledMutation.mutate({ backgroundUrl: bg.url, backgroundColor: bg.color, backgroundGradient: null })}
+                  className="group relative aspect-video rounded-xl overflow-hidden border border-white/10"
+                >
                   <img src={bg.url} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-black" />
-                )}
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-white text-xs font-bold uppercase">{bg.name}</span>
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-white text-xs font-bold uppercase">{bg.name}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold text-white">Gradients</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {PRESET_GRADIENTS.map((grad) => (
+                <button
+                  key={grad.name}
+                  onClick={() => ledMutation.mutate({ backgroundUrl: null, backgroundGradient: grad.gradient })}
+                  className="group relative aspect-video rounded-xl overflow-hidden border border-white/10"
+                  style={{ background: grad.gradient }}
+                >
+                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-white text-xs font-bold uppercase">{grad.name}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold text-white">Custom Gradient</h2>
+            <div className="flex flex-col md:flex-row items-center gap-6 bg-white/5 p-6 rounded-2xl border border-white/10">
+              <div 
+                className="w-full md:w-48 aspect-video rounded-xl border border-white/20 shadow-xl"
+                style={{ background: `linear-gradient(135deg, ${customStart}, ${customEnd})` }}
+              />
+              <div className="flex-1 flex flex-col gap-4 w-full">
+                <div className="flex gap-4">
+                  <div className="flex-1 space-y-2">
+                    <label className="text-xs text-white/50 uppercase font-bold">Start Color</label>
+                    <input 
+                      type="color" 
+                      value={customStart}
+                      onChange={(e) => setCustomStart(e.target.value)}
+                      className="w-full h-10 bg-transparent rounded cursor-pointer"
+                    />
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <label className="text-xs text-white/50 uppercase font-bold">End Color</label>
+                    <input 
+                      type="color" 
+                      value={customEnd}
+                      onChange={(e) => setCustomEnd(e.target.value)}
+                      className="w-full h-10 bg-transparent rounded cursor-pointer"
+                    />
+                  </div>
                 </div>
-              </button>
-            ))}
+                <button
+                  onClick={() => ledMutation.mutate({ 
+                    backgroundUrl: null, 
+                    backgroundGradient: `linear-gradient(135deg, ${customStart}, ${customEnd})` 
+                  })}
+                  className="w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-white/90 transition-colors"
+                >
+                  Apply Custom Gradient
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       );
@@ -137,13 +203,14 @@ export default function Home() {
   const isNightMode = (ledState as any)?.mode === "pulse";
   const backgroundUrl = (ledState as any)?.backgroundUrl;
   const backgroundColor = (ledState as any)?.backgroundColor || "#000000";
+  const backgroundGradient = (ledState as any)?.backgroundGradient;
 
   return (
     <div 
-      className={`min-h-screen w-full relative overflow-hidden flex flex-col transition-colors duration-1000`}
+      className={`min-h-screen w-full relative overflow-hidden flex flex-col transition-all duration-1000`}
       style={{ 
         backgroundColor: isNightMode ? "#0a0a1a" : backgroundColor,
-        backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : "none",
+        backgroundImage: isNightMode ? "none" : (backgroundUrl ? `url(${backgroundUrl})` : backgroundGradient || "none"),
         backgroundSize: "cover",
         backgroundPosition: "center"
       }}
