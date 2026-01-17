@@ -10,6 +10,7 @@ export const ledStates = pgTable("led_states", {
   isOn: boolean("is_on").notNull().default(true),
   backgroundUrl: text("background_url"),
   backgroundColor: text("background_color").default("#000000"),
+  backgroundGradient: text("background_gradient"),
 });
 
 export const photos = pgTable("photos", {
