@@ -8,6 +8,8 @@ export const ledStates = pgTable("led_states", {
   mode: text("mode").notNull().default("static"), // static, pulse, fade, sunrise
   brightness: integer("brightness").notNull().default(100),
   isOn: boolean("is_on").notNull().default(true),
+  backgroundUrl: text("background_url"),
+  backgroundColor: text("background_color").default("#000000"),
 });
 
 export const photos = pgTable("photos", {

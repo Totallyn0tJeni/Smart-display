@@ -12,6 +12,7 @@ import {
   Moon,
   Sun,
   Film,
+  Settings,
   X
 } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -27,7 +28,7 @@ import { FlocusApp } from "./apps/FlocusApp";
 import { WeatherApp } from "./apps/WeatherApp";
 import { MoviesApp } from "./apps/MoviesApp";
 
-type AppType = "spotify" | "photos" | "calendar" | "lights" | "flocus" | "weather" | "movies" | null;
+type AppType = "spotify" | "photos" | "calendar" | "lights" | "flocus" | "weather" | "movies" | "settings" | null;
 
 const APPS = [
   { id: "weather", icon: Cloud, label: "Weather", color: "from-sky-400/50 to-blue-500/50" },
@@ -37,7 +38,16 @@ const APPS = [
   { id: "spotify", icon: Music, label: "Spotify", color: "from-green-500/50 to-emerald-500/50" },
   { id: "lights", icon: Lightbulb, label: "Lights", color: "from-yellow-500/50 to-orange-500/50" },
   { id: "flocus", icon: Timer, label: "Flocus", color: "from-indigo-500/50 to-purple-500/50" },
+  { id: "settings", icon: Settings, label: "Settings", color: "from-gray-500/50 to-slate-600/50" },
 ] as const;
+
+const PRESET_BACKGROUNDS = [
+  { name: "Default", color: "#000000", url: null },
+  { name: "Deep Space", color: "#0a0a1a", url: "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?auto=format&fit=crop&w=1920&q=80" },
+  { name: "Sunset", color: "#2d1b2d", url: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&w=1920&q=80" },
+  { name: "Forest", color: "#1a241a", url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1920&q=80" },
+  { name: "Nordic Lake", color: "#1a2a3a", url: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=1920&q=80" },
+];
 
 export default function Home() {
   const [activeApp, setActiveApp] = useState<AppType>(null);
@@ -72,14 +82,50 @@ export default function Home() {
       case "flocus": return <FlocusApp onClose={() => setActiveApp(null)} />;
       case "weather": return <WeatherApp onClose={() => setActiveApp(null)} />;
       case "movies": return <MoviesApp onClose={() => setActiveApp(null)} />;
+      case "settings": return (
+        <div className="p-8 flex flex-col gap-6">
+          <h2 className="text-2xl font-bold text-white">Appearance</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {PRESET_BACKGROUNDS.map((bg) => (
+              <button
+                key={bg.name}
+                onClick={() => ledMutation.mutate({ backgroundUrl: bg.url, backgroundColor: bg.color })}
+                className="group relative aspect-video rounded-xl overflow-hidden border border-white/10"
+              >
+                {bg.url ? (
+                  <img src={bg.url} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-black" />
+                )}
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-white text-xs font-bold uppercase">{bg.name}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      );
       default: return null;
     }
   };
 
   const isNightMode = (ledState as any)?.mode === "pulse";
+  const backgroundUrl = (ledState as any)?.backgroundUrl;
+  const backgroundColor = (ledState as any)?.backgroundColor || "#000000";
 
   return (
-    <div className={`min-h-screen w-full relative overflow-hidden flex flex-col transition-colors duration-1000 ${isNightMode ? "bg-[#0a0a1a]" : "bg-transparent"}`}>
+    <div 
+      className={`min-h-screen w-full relative overflow-hidden flex flex-col transition-colors duration-1000`}
+      style={{ 
+        backgroundColor: isNightMode ? "#0a0a1a" : backgroundColor,
+        backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : "none",
+        backgroundSize: "cover",
+        backgroundPosition: "center"
+      }}
+    >
+      {/* Background Dark Overlay */}
+      <div className={`absolute inset-0 transition-opacity duration-1000 ${isNightMode ? 'bg-black/60' : 'bg-black/20'}`} />
+
       {/* Night Mode Toggle */}
       <div className="absolute top-6 right-6 z-50">
         <button
@@ -89,6 +135,7 @@ export default function Home() {
           {isNightMode ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
         </button>
       </div>
+
       {/* Main Dashboard Content */}
       <AnimatePresence>
         {!activeApp && (
@@ -97,45 +144,41 @@ export default function Home() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.05, filter: "blur(10px)" }}
             transition={{ duration: 0.5, ease: "circOut" }}
-            className="flex-1 flex flex-col items-center justify-center p-8 z-10"
+            className="flex-1 flex p-8 z-10 gap-8"
           >
-            <div className="flex-1 flex flex-col items-center justify-center w-full max-w-4xl gap-8">
+            {/* Left Side: Clock and Large Photo Gallery */}
+            <div className="flex-[3] flex flex-col gap-8 items-center justify-center">
               <ClockWidget />
               
-              {/* Slideshow directly under clock */}
-              <div className="w-full max-w-2xl aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative group">
+              <div className="w-full max-w-4xl aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative group">
                 <PhotosApp onClose={() => {}} isWidget={true} />
               </div>
             </div>
 
-            <div className="flex w-full max-w-6xl items-end justify-between mt-8">
-              {/* Side Navigation */}
-              <div className="w-24">
-                <GlassCard 
-                  variant="panel" 
-                  className="p-2 flex flex-col justify-around items-center gap-2 bg-white/5 border-white/10 rounded-3xl"
-                >
-                  {APPS.map((app) => (
-                    <button
-                      key={app.id}
-                      onClick={() => setActiveApp(app.id as AppType)}
-                      className="group relative flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-300 hover:bg-white/10"
-                    >
-                      <div className={`
-                        w-12 h-12 rounded-xl flex items-center justify-center
-                        bg-gradient-to-br ${app.color}
-                        shadow-lg border border-white/20
-                        transition-all duration-300
-                      `}>
-                        <app.icon className="w-6 h-6 text-white" />
-                      </div>
-                    </button>
-                  ))}
-                </GlassCard>
-              </div>
-
-              {/* Theme Toggle placeholder space or other widget */}
-              <div className="w-24 h-24" />
+            {/* Right Side: Vertical Navigation */}
+            <div className="flex-1 flex flex-col justify-center max-w-[120px]">
+              <GlassCard 
+                variant="panel" 
+                className="p-3 flex flex-col justify-around items-center gap-4 bg-white/5 border-white/10 rounded-full"
+              >
+                {APPS.map((app) => (
+                  <button
+                    key={app.id}
+                    onClick={() => setActiveApp(app.id as AppType)}
+                    className="group relative flex flex-col items-center gap-1 p-3 rounded-full transition-all duration-300 hover:bg-white/10"
+                  >
+                    <div className={`
+                      w-14 h-14 rounded-full flex items-center justify-center
+                      bg-gradient-to-br ${app.color}
+                      shadow-lg border border-white/20
+                      transition-all duration-300
+                      group-hover:scale-110
+                    `}>
+                      <app.icon className="w-7 h-7 text-white" />
+                    </div>
+                  </button>
+                ))}
+              </GlassCard>
             </div>
           </motion.div>
         )}
@@ -169,8 +212,8 @@ export default function Home() {
       </AnimatePresence>
 
       {/* Decorative ambient blobs */}
-      <div className="fixed top-[-20%] left-[-10%] w-[50vw] h-[50vw] bg-purple-600/20 rounded-full blur-[120px] pointer-events-none" />
-      <div className="fixed bottom-[-20%] right-[-10%] w-[50vw] h-[50vw] bg-blue-600/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="fixed top-[-20%] left-[-10%] w-[50vw] h-[50vw] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="fixed bottom-[-20%] right-[-10%] w-[50vw] h-[50vw] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
     </div>
   );
 }

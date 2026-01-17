@@ -4,7 +4,6 @@ import { Plus, Image as ImageIcon, ExternalLink, ChevronLeft, ChevronRight, Paus
 import { api } from "@shared/routes";
 import { GlassCard } from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,7 +21,13 @@ const VSCO_GALLERY_PHOTOS = [
   "https://im.vsco.co/aws-us-west-2/259d2e/281885216/69560a92e0147372eb38205f/vsco_010126.jpg",
   "https://im.vsco.co/aws-us-west-2/259d2e/281885216/69560a74e0147372eb38205b/vsco_010126.jpg",
   "https://im.vsco.co/aws-us-west-2/259d2e/281885216/69560a58e0147372eb382057/vsco_010126.jpg",
-  "https://im.vsco.co/aws-us-west-2/259d2e/281885216/69560a40e0147372eb382053/vsco_010126.jpg"
+  "https://im.vsco.co/aws-us-west-2/259d2e/281885216/69560a40e0147372eb382053/vsco_010126.jpg",
+  "https://im.vsco.co/aws-us-west-2/259d2e/281885216/69560a89e0147372eb38205e/vsco_010126.jpg",
+  "https://im.vsco.co/aws-us-west-2/259d2e/281885216/69560a6ee0147372eb38205a/vsco_010126.jpg",
+  "https://im.vsco.co/aws-us-west-2/259d2e/281885216/69560a53e0147372eb382056/vsco_010126.jpg",
+  "https://im.vsco.co/aws-us-west-2/259d2e/281885216/69560a84e0147372eb38205d/vsco_010126.jpg",
+  "https://im.vsco.co/aws-us-west-2/259d2e/281885216/69560a68e0147372eb382059/vsco_010126.jpg",
+  "https://im.vsco.co/aws-us-west-2/259d2e/281885216/69560a4de0147372eb382055/vsco_010126.jpg"
 ];
 
 export function PhotosApp({ onClose, isWidget = false }: PhotosAppProps) {
@@ -63,7 +68,7 @@ export function PhotosApp({ onClose, isWidget = false }: PhotosAppProps) {
           />
         </AnimatePresence>
         <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
-          <p className="text-white/60 text-xs uppercase tracking-widest">VSCO Gallery</p>
+          <p className="text-white/60 text-[10px] uppercase tracking-widest font-medium">VSCO Collection</p>
         </div>
       </div>
     );
@@ -75,12 +80,14 @@ export function PhotosApp({ onClose, isWidget = false }: PhotosAppProps) {
         <h2 className="text-2xl font-bold text-white flex items-center gap-2">
           <ImageIcon className="w-6 h-6" /> VSCO Gallery
         </h2>
-        <Button variant="outline" className="border-white/10 bg-white/5 text-white">
-          <ExternalLink className="w-4 h-4 mr-2" /> Open VSCO
+        <Button variant="outline" className="border-white/10 bg-white/5 text-white" asChild>
+          <a href="https://vsco.co/tottalyn0tjeni/gallery" target="_blank" rel="noopener noreferrer">
+            <ExternalLink className="w-4 h-4 mr-2" /> View Original
+          </a>
         </Button>
       </div>
 
-      <div className="relative aspect-video rounded-3xl overflow-hidden border border-white/10 group">
+      <div className="relative aspect-video rounded-3xl overflow-hidden border border-white/10 group shadow-2xl">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentIndex}
@@ -108,13 +115,13 @@ export function PhotosApp({ onClose, isWidget = false }: PhotosAppProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
         {photos.map((url, idx) => (
           <motion.div
             key={idx}
             whileHover={{ scale: 1.05 }}
             onClick={() => setCurrentIndex(idx)}
-            className={`aspect-square rounded-xl overflow-hidden border cursor-pointer transition-all ${idx === currentIndex ? 'border-white ring-2 ring-white/50' : 'border-white/10 opacity-60'}`}
+            className={`aspect-square rounded-lg overflow-hidden border cursor-pointer transition-all ${idx === currentIndex ? 'border-white ring-2 ring-white/50' : 'border-white/10 opacity-60'}`}
           >
             <img src={url} className="w-full h-full object-cover" alt={`Photo ${idx}`} />
           </motion.div>
