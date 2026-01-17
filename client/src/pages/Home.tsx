@@ -146,16 +146,7 @@ export default function Home() {
             transition={{ duration: 0.5, ease: "circOut" }}
             className="flex-1 flex p-8 z-10 gap-8"
           >
-            {/* Left Side: Clock and Large Photo Gallery */}
-            <div className="flex-[3] flex flex-col gap-8 items-center justify-center">
-              <ClockWidget />
-              
-              <div className="w-full max-w-4xl aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative group">
-                <PhotosApp onClose={() => {}} isWidget={true} />
-              </div>
-            </div>
-
-            {/* Right Side: Vertical Navigation */}
+            {/* Left Side: Vertical Navigation */}
             <div className="flex-1 flex flex-col justify-center max-w-[120px]">
               <GlassCard 
                 variant="panel" 
@@ -179,6 +170,15 @@ export default function Home() {
                   </button>
                 ))}
               </GlassCard>
+            </div>
+
+            {/* Right Side: Clock and Large Photo Gallery */}
+            <div className="flex-[3] flex flex-col gap-8 items-center justify-center">
+              <ClockWidget />
+              
+              <div className="w-full max-w-4xl aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative group">
+                <PhotosApp onClose={() => {}} isWidget={true} />
+              </div>
             </div>
           </motion.div>
         )}
