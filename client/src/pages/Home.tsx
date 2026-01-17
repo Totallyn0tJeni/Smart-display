@@ -13,8 +13,10 @@ import {
   Sun,
   Film,
   Settings,
-  X
+  X,
+  Youtube
 } from "lucide-react";
+import { SiYoutube } from "react-icons/si";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { api } from "@shared/routes";
@@ -28,12 +30,34 @@ import { FlocusApp } from "./apps/FlocusApp";
 import { WeatherApp } from "./apps/WeatherApp";
 import { MoviesApp } from "./apps/MoviesApp";
 
-type AppType = "spotify" | "photos" | "calendar" | "lights" | "flocus" | "weather" | "movies" | "settings" | null;
+function YouTubeApp({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="w-full h-full flex flex-col p-8 gap-6">
+      <h2 className="text-3xl font-bold text-white flex items-center gap-3">
+        <SiYoutube className="w-8 h-8 text-red-600" /> YouTube
+      </h2>
+      <GlassCard variant="panel" className="flex-1 w-full overflow-hidden bg-black/40">
+        <iframe 
+          src="https://www.youtube.com/embed?listType=user_uploads&list=vsco" 
+          width="100%" 
+          height="100%" 
+          frameBorder="0" 
+          allowFullScreen 
+          allow="autoplay; encrypted-media" 
+          className="w-full h-full"
+        />
+      </GlassCard>
+    </div>
+  );
+}
+
+type AppType = "spotify" | "photos" | "calendar" | "lights" | "flocus" | "weather" | "movies" | "settings" | "youtube" | null;
 
 const APPS = [
   { id: "weather", icon: Cloud, label: "Weather", color: "from-sky-400/50 to-blue-500/50" },
   { id: "photos", icon: ImageIcon, label: "Photos", color: "from-pink-500/50 to-rose-500/50" },
   { id: "movies", icon: Film, label: "Movies", color: "from-indigo-600/50 to-violet-600/50" },
+  { id: "youtube", icon: SiYoutube, label: "YouTube", color: "from-red-500/50 to-orange-600/50" },
   { id: "calendar", icon: CalendarIcon, label: "Calendar", color: "from-blue-500/50 to-cyan-500/50" },
   { id: "spotify", icon: Music, label: "Spotify", color: "from-green-500/50 to-emerald-500/50" },
   { id: "lights", icon: Lightbulb, label: "Lights", color: "from-yellow-500/50 to-orange-500/50" },
@@ -82,6 +106,7 @@ export default function Home() {
       case "flocus": return <FlocusApp onClose={() => setActiveApp(null)} />;
       case "weather": return <WeatherApp onClose={() => setActiveApp(null)} />;
       case "movies": return <MoviesApp onClose={() => setActiveApp(null)} />;
+      case "youtube": return <YouTubeApp onClose={() => setActiveApp(null)} />;
       case "settings": return (
         <div className="p-8 flex flex-col gap-6">
           <h2 className="text-2xl font-bold text-white">Appearance</h2>
