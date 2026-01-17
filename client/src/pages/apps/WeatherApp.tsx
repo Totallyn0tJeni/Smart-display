@@ -8,7 +8,6 @@ import { ComposableMap, Geographies, Geography, Sphere, Graticule, Marker } from
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-// A more reliable TopoJSON for the world map
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
 interface WeatherAppProps {
@@ -16,6 +15,17 @@ interface WeatherAppProps {
 }
 
 const LOCATIONS = [
+  // Canada
+  { name: "Toronto", coordinates: [-79.3832, 43.6532], temp: 2, condition: "Cloudy" },
+  { name: "Vancouver", coordinates: [-123.1207, 49.2827], temp: 8, condition: "Rainy" },
+  { name: "Montreal", coordinates: [-73.5673, 45.5017], temp: -2, condition: "Snow" },
+  { name: "Calgary", coordinates: [-114.0719, 51.0447], temp: -5, condition: "Clear" },
+  { name: "Ottawa", coordinates: [-75.6972, 45.4215], temp: -1, condition: "Cloudy" },
+  { name: "Edmonton", coordinates: [-113.4909, 53.5444], temp: -8, condition: "Clear" },
+  { name: "Quebec City", coordinates: [-71.2075, 46.8139], temp: -4, condition: "Snow" },
+  { name: "Winnipeg", coordinates: [-97.1384, 49.8951], temp: -12, condition: "Clear" },
+  
+  // Popular Global Destinations
   { name: "New York", coordinates: [-74.006, 40.7128], temp: 22, condition: "Sunny" },
   { name: "London", coordinates: [-0.1276, 51.5074], temp: 15, condition: "Rainy" },
   { name: "Tokyo", coordinates: [139.6503, 35.6762], temp: 28, condition: "Clear" },
@@ -24,6 +34,15 @@ const LOCATIONS = [
   { name: "Los Angeles", coordinates: [-118.2437, 34.0522], temp: 25, condition: "Sunny" },
   { name: "Berlin", coordinates: [13.405, 52.52], temp: 17, condition: "Cloudy" },
   { name: "Dubai", coordinates: [55.2708, 25.2048], temp: 35, condition: "Clear" },
+  { name: "Rome", coordinates: [12.4964, 41.9028], temp: 24, condition: "Sunny" },
+  { name: "Barcelona", coordinates: [2.1734, 41.3851], temp: 21, condition: "Sunny" },
+  { name: "Singapore", coordinates: [103.8198, 1.3521], temp: 31, condition: "Rainy" },
+  { name: "Hong Kong", coordinates: [114.1694, 22.3193], temp: 26, condition: "Cloudy" },
+  { name: "Seoul", coordinates: [126.978, 37.5665], temp: 19, condition: "Clear" },
+  { name: "Bangkok", coordinates: [100.5018, 13.7563], temp: 33, condition: "Sunny" },
+  { name: "Istanbul", coordinates: [28.9784, 41.0082], temp: 18, condition: "Windy" },
+  { name: "Cape Town", coordinates: [18.4241, -33.9249], temp: 22, condition: "Windy" },
+  { name: "Rio de Janeiro", coordinates: [-43.1729, -22.9068], temp: 29, condition: "Sunny" },
 ];
 
 export function WeatherApp({ onClose }: WeatherAppProps) {
@@ -82,7 +101,6 @@ export function WeatherApp({ onClose }: WeatherAppProps) {
 
   const handleLocationSelect = (loc: typeof LOCATIONS[0]) => {
     setSelectedLocation(loc);
-    // Rotate globe to face the selected location
     setRotation(-loc.coordinates[0]);
   };
 
@@ -200,7 +218,7 @@ export function WeatherApp({ onClose }: WeatherAppProps) {
                 ))
               }
             </Geographies>
-            {LOCATIONS.map((loc) => (
+            {filteredLocations.map((loc) => (
               <Marker key={loc.name} coordinates={loc.coordinates as [number, number]}>
                 <motion.circle
                   r={4}
@@ -234,9 +252,6 @@ export function WeatherApp({ onClose }: WeatherAppProps) {
                 </motion.button>
               ))}
             </AnimatePresence>
-            {filteredLocations.length === 0 && (
-              <span className="text-white/40 text-[10px] uppercase font-bold">No cities found</span>
-            )}
           </div>
 
           <div className="absolute top-4 right-4 flex flex-col gap-2">
