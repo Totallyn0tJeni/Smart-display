@@ -1,12 +1,15 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Cloud, Sun, CloudRain, Wind, Thermometer, MapPin, Navigation, Globe } from "lucide-react";
+import { Cloud, Sun, CloudRain, Wind, Thermometer, MapPin, Navigation, Globe, Search, X } from "lucide-react";
 import { api } from "@shared/routes";
 import { GlassCard } from "@/components/GlassCard";
 import { motion, AnimatePresence } from "framer-motion";
-import { ComposableMap, Geographies, Geography, Sphere, Graticule } from "react-simple-maps";
+import { ComposableMap, Geographies, Geography, Sphere, Graticule, Marker } from "react-simple-maps";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
-const geoUrl = "https://raw.githubusercontent.com/lotusms/world_map/master/world.json";
+// A more reliable TopoJSON for the world map
+const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
 interface WeatherAppProps {
   onClose: () => void;
@@ -18,11 +21,22 @@ const LOCATIONS = [
   { name: "Tokyo", coordinates: [139.6503, 35.6762], temp: 28, condition: "Clear" },
   { name: "Sydney", coordinates: [151.2093, -33.8688], temp: 18, condition: "Windy" },
   { name: "Paris", coordinates: [2.3522, 48.8566], temp: 20, condition: "Cloudy" },
+  { name: "Los Angeles", coordinates: [-118.2437, 34.0522], temp: 25, condition: "Sunny" },
+  { name: "Berlin", coordinates: [13.405, 52.52], temp: 17, condition: "Cloudy" },
+  { name: "Dubai", coordinates: [55.2708, 25.2048], temp: 35, condition: "Clear" },
 ];
 
 export function WeatherApp({ onClose }: WeatherAppProps) {
   const [selectedLocation, setSelectedLocation] = useState(LOCATIONS[0]);
   const [rotation, setRotation] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredLocations = useMemo(() => {
+    if (!searchQuery) return LOCATIONS;
+    return LOCATIONS.filter(loc => 
+      loc.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery]);
 
   const getWeatherIcon = (condition: string) => {
     const lower = condition.toLowerCase();
@@ -66,22 +80,38 @@ export function WeatherApp({ onClose }: WeatherAppProps) {
     );
   };
 
+  const handleLocationSelect = (loc: typeof LOCATIONS[0]) => {
+    setSelectedLocation(loc);
+    // Rotate globe to face the selected location
+    setRotation(-loc.coordinates[0]);
+  };
+
   return (
-    <div className="flex-1 p-8 flex flex-col md:flex-row gap-8 overflow-hidden">
+    <div className="flex-1 p-8 flex flex-col md:flex-row gap-8 overflow-hidden h-full">
       <div className="flex-1 flex flex-col gap-8 items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="flex items-center gap-2 text-white/70 text-lg">
             <MapPin className="w-5 h-5" />
-            <span>{selectedLocation.name}</span>
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={selectedLocation.name}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+              >
+                {selectedLocation.name}
+              </motion.span>
+            </AnimatePresence>
           </div>
           
           <div className="flex flex-col items-center">
             <AnimatePresence mode="wait">
               <motion.div
                 key={selectedLocation.name}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.2 }}
+                transition={{ duration: 0.5 }}
               >
                 {getWeatherIcon(selectedLocation.condition)}
               </motion.div>
@@ -116,11 +146,32 @@ export function WeatherApp({ onClose }: WeatherAppProps) {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col gap-4">
-        <div className="flex items-center gap-2 text-white/70 mb-2">
-          <Globe className="w-5 h-5" />
-          <span className="font-medium uppercase tracking-widest text-sm">Global Outlook</span>
+      <div className="flex-1 flex flex-col gap-4 overflow-hidden h-full">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-2 text-white/70">
+            <Globe className="w-5 h-5" />
+            <span className="font-medium uppercase tracking-widest text-sm">Global Outlook</span>
+          </div>
+          
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" />
+            <Input 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search cities..."
+              className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30"
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2"
+              >
+                <X className="w-4 h-4 text-white/50 hover:text-white" />
+              </button>
+            )}
+          </div>
         </div>
+
         <GlassCard className="flex-1 bg-black/20 border-white/10 overflow-hidden relative min-h-[300px]">
           <ComposableMap
             projection="geoOrthographic"
@@ -143,50 +194,61 @@ export function WeatherApp({ onClose }: WeatherAppProps) {
                     style={{
                       default: { outline: "none" },
                       hover: { fill: "#ffffff30", outline: "none" },
+                      pressed: { outline: "none" }
                     }}
                   />
                 ))
               }
             </Geographies>
             {LOCATIONS.map((loc) => (
-              <motion.circle
-                key={loc.name}
-                cx={0} cy={0} r={4}
-                fill={selectedLocation.name === loc.name ? "#fff" : "#ffffff40"}
-                stroke="#fff"
-                strokeWidth={selectedLocation.name === loc.name ? 2 : 0}
-                className="cursor-pointer"
-                onClick={() => setSelectedLocation(loc)}
-              />
+              <Marker key={loc.name} coordinates={loc.coordinates as [number, number]}>
+                <motion.circle
+                  r={4}
+                  fill={selectedLocation.name === loc.name ? "#fff" : "#ffffff40"}
+                  stroke="#fff"
+                  strokeWidth={selectedLocation.name === loc.name ? 2 : 0}
+                  className="cursor-pointer"
+                  onClick={() => handleLocationSelect(loc)}
+                  whileHover={{ scale: 1.5 }}
+                />
+              </Marker>
             ))}
           </ComposableMap>
           
-          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 px-4 overflow-x-auto pb-2">
-            {LOCATIONS.map((loc) => (
-              <button
-                key={loc.name}
-                onClick={() => setSelectedLocation(loc)}
-                className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-tighter transition-all ${
-                  selectedLocation.name === loc.name 
-                    ? 'bg-white text-black shadow-lg' 
-                    : 'bg-white/10 text-white hover:bg-white/20'
-                }`}
-              >
-                {loc.name}
-              </button>
-            ))}
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 px-4 overflow-x-auto pb-2 no-scrollbar">
+            <AnimatePresence>
+              {filteredLocations.map((loc) => (
+                <motion.button
+                  key={loc.name}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  onClick={() => handleLocationSelect(loc)}
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-tighter whitespace-nowrap transition-all flex-shrink-0 ${
+                    selectedLocation.name === loc.name 
+                      ? 'bg-white text-black shadow-lg' 
+                      : 'bg-white/10 text-white hover:bg-white/20'
+                  }`}
+                >
+                  {loc.name}
+                </motion.button>
+              ))}
+            </AnimatePresence>
+            {filteredLocations.length === 0 && (
+              <span className="text-white/40 text-[10px] uppercase font-bold">No cities found</span>
+            )}
           </div>
 
           <div className="absolute top-4 right-4 flex flex-col gap-2">
             <button 
               onClick={() => setRotation(r => r - 45)}
-              className="p-2 bg-white/10 rounded-full hover:bg-white/20 text-white"
+              className="p-2 bg-white/10 rounded-full hover:bg-white/20 text-white backdrop-blur-md border border-white/10"
             >
               <Navigation className="w-4 h-4 -rotate-90" />
             </button>
             <button 
               onClick={() => setRotation(r => r + 45)}
-              className="p-2 bg-white/10 rounded-full hover:bg-white/20 text-white"
+              className="p-2 bg-white/10 rounded-full hover:bg-white/20 text-white backdrop-blur-md border border-white/10"
             >
               <Navigation className="w-4 h-4 rotate-90" />
             </button>
