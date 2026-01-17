@@ -56,7 +56,7 @@ export default function Home() {
   });
 
   const toggleNightMode = () => {
-    const isNight = ledState?.mode === "pulse";
+    const isNight = (ledState as any)?.mode === "pulse";
     ledMutation.mutate({
       mode: isNight ? "static" : "pulse",
       color: isNight ? "#ffffff" : "#1a1a2e",
@@ -76,7 +76,7 @@ export default function Home() {
     }
   };
 
-  const isNightMode = ledState?.mode === "pulse";
+  const isNightMode = (ledState as any)?.mode === "pulse";
 
   return (
     <div className={`min-h-screen w-full relative overflow-hidden flex flex-col transition-colors duration-1000 ${isNightMode ? "bg-[#0a0a1a]" : "bg-transparent"}`}>
@@ -99,40 +99,43 @@ export default function Home() {
             transition={{ duration: 0.5, ease: "circOut" }}
             className="flex-1 flex flex-col items-center justify-center p-8 z-10"
           >
-            <div className="flex-1 flex items-center justify-center w-full max-w-4xl">
+            <div className="flex-1 flex flex-col items-center justify-center w-full max-w-4xl gap-8">
               <ClockWidget />
+              
+              {/* Slideshow directly under clock */}
+              <div className="w-full max-w-2xl aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative group">
+                <PhotosApp onClose={() => {}} isWidget={true} />
+              </div>
             </div>
 
-            {/* Dock */}
-            <div className="mb-12 w-full max-w-3xl">
-              <GlassCard 
-                variant="panel" 
-                className="p-4 flex justify-around items-center gap-4 bg-white/5 border-white/10"
-              >
-                {APPS.map((app) => (
-                  <button
-                    key={app.id}
-                    onClick={() => setActiveApp(app.id as AppType)}
-                    className="group relative flex flex-col items-center gap-2 p-4 rounded-xl transition-all duration-300 hover:-translate-y-2"
-                  >
-                    <div className={`
-                      w-16 h-16 rounded-2xl flex items-center justify-center
-                      bg-gradient-to-br ${app.color}
-                      shadow-lg shadow-black/20 border border-white/20
-                      group-hover:shadow-xl group-hover:shadow-white/10
-                      transition-all duration-300
-                    `}>
-                      <app.icon className="w-8 h-8 text-white drop-shadow-md" />
-                    </div>
-                    <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">
-                      {app.label}
-                    </span>
-                    
-                    {/* Glow effect on hover */}
-                    <div className="absolute inset-0 bg-white/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
-                  </button>
-                ))}
-              </GlassCard>
+            <div className="flex w-full max-w-6xl items-end justify-between mt-8">
+              {/* Side Navigation */}
+              <div className="w-24">
+                <GlassCard 
+                  variant="panel" 
+                  className="p-2 flex flex-col justify-around items-center gap-2 bg-white/5 border-white/10 rounded-3xl"
+                >
+                  {APPS.map((app) => (
+                    <button
+                      key={app.id}
+                      onClick={() => setActiveApp(app.id as AppType)}
+                      className="group relative flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-300 hover:bg-white/10"
+                    >
+                      <div className={`
+                        w-12 h-12 rounded-xl flex items-center justify-center
+                        bg-gradient-to-br ${app.color}
+                        shadow-lg border border-white/20
+                        transition-all duration-300
+                      `}>
+                        <app.icon className="w-6 h-6 text-white" />
+                      </div>
+                    </button>
+                  ))}
+                </GlassCard>
+              </div>
+
+              {/* Theme Toggle placeholder space or other widget */}
+              <div className="w-24 h-24" />
             </div>
           </motion.div>
         )}
