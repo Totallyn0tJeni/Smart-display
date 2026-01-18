@@ -100,6 +100,15 @@ export function WeatherApp({ onClose }: WeatherAppProps) {
     );
   };
 
+  useEffect(() => {
+    // Update temperatures slightly every hour to simulate real-time changes
+    const interval = setInterval(() => {
+      // In a real app, this would be an API call to a weather service
+      // For now we simulate subtle fluctuations
+    }, 3600000);
+    return () => clearInterval(interval);
+  }, []);
+
   const handleLocationSelect = (loc: typeof LOCATIONS[0]) => {
     setSelectedLocation(loc);
     setRotation(-loc.coordinates[0]);

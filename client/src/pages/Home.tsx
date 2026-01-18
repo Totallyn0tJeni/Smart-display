@@ -96,8 +96,19 @@ export default function Home() {
   const [activeApp, setActiveApp] = useState<AppType>(null);
   const [customStart, setCustomStart] = useState("#667eea");
   const [customEnd, setCustomEnd] = useState("#764ba2");
-  const [quickNotes, setQuickNotes] = useState("");
-  const [affirmationIdx] = useState(() => Math.floor(Math.random() * AFFIRMATIONS.length));
+  const [quickNotes, setQuickNotes] = useState(() => localStorage.getItem("quick-notes") || "");
+  const [affirmationIdx, setAffirmationIdx] = useState(() => Math.floor(Math.random() * AFFIRMATIONS.length));
+
+  useEffect(() => {
+    localStorage.setItem("quick-notes", quickNotes);
+  }, [quickNotes]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAffirmationIdx((prev) => (prev + 1) % AFFIRMATIONS.length);
+    }, 120000); // 2 minutes
+    return () => clearInterval(interval);
+  }, []);
 
   const { data: ledState } = useQuery({
     queryKey: [api.led.get.path],
