@@ -162,14 +162,17 @@ export function PhotosApp({ onClose, isWidget = false }: PhotosAppProps) {
           <button onClick={() => setCurrentIndex((prev) => (prev - 1 + photos.length) % photos.length)} className="p-3 rounded-full bg-white/10 backdrop-blur-md text-white hover:bg-white/20">
             <ChevronLeft className="w-8 h-8" />
           </button>
-          <div className="flex flex-col items-center gap-4">
+                  <div className="flex flex-col items-center gap-4">
             <button onClick={() => setIsPlaying(!isPlaying)} className="p-5 rounded-full bg-white/10 backdrop-blur-md text-white hover:bg-white/20">
               {isPlaying ? <Pause className="w-10 h-10" /> : <Play className="w-10 h-10 ml-1" />}
             </button>
             {photos[currentIndex].id && (
               <button 
-                onClick={() => deletePhotoMutation.mutate(photos[currentIndex].id!)} 
-                className="p-3 rounded-full bg-red-500/20 backdrop-blur-md text-red-500 border border-red-500/30 hover:bg-red-500/40 transition-all"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deletePhotoMutation.mutate(photos[currentIndex].id!);
+                }} 
+                className="p-3 rounded-full bg-red-500/20 backdrop-blur-md text-red-500 border border-red-500/30 hover:bg-red-500/40 transition-all z-50"
                 title="Delete photo"
               >
                 <Trash2 className="w-6 h-6" />
