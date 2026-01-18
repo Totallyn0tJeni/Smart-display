@@ -50,17 +50,19 @@ export function WeatherApp({ onClose }: WeatherAppProps) {
   const [selectedLocation, setSelectedLocation] = useState(LOCATIONS[0]);
   const [rotation, setRotation] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
+  const [localWeather, setLocalWeather] = useState<{temp: number, condition: string, name: string} | null>(null);
 
   const filteredLocations = useMemo(() => {
-    if (!searchQuery) return LOCATIONS;
-    return LOCATIONS.filter(loc => 
+    const base = localWeather ? [localWeather, ...LOCATIONS] : LOCATIONS;
+    if (!searchQuery) return base;
+    return base.filter(loc => 
       loc.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [searchQuery]);
+  }, [searchQuery, localWeather]);
 
   const getWeatherIcon = (condition: string) => {
     const lower = condition.toLowerCase();
-    if (lower.includes("sun") || lower.includes("clear")) {
+    if (lower.includes("sun") || lower.includes("clear") || lower.includes("sunny")) {
       return (
         <motion.div
           animate={{ rotate: 360 }}
@@ -70,7 +72,7 @@ export function WeatherApp({ onClose }: WeatherAppProps) {
         </motion.div>
       );
     }
-    if (lower.includes("rain")) {
+    if (lower.includes("rain") || lower.includes("drizzle")) {
       return (
         <motion.div
           animate={{ y: [0, 10, 0] }}
@@ -80,7 +82,7 @@ export function WeatherApp({ onClose }: WeatherAppProps) {
         </motion.div>
       );
     }
-    if (lower.includes("wind")) {
+    if (lower.includes("wind") || lower.includes("breez")) {
       return (
         <motion.div
           animate={{ x: [-10, 10, -10] }}
@@ -101,10 +103,40 @@ export function WeatherApp({ onClose }: WeatherAppProps) {
   };
 
   useEffect(() => {
-    // Update temperatures slightly every hour to simulate real-time changes
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
+          const data = await res.json();
+          if (data.current_weather) {
+            const temp = Math.round(data.current_weather.temperature);
+            const code = data.current_weather.weathercode;
+            let condition = "Clear";
+            if (code >= 1 && code <= 3) condition = "Cloudy";
+            else if (code >= 45 && code <= 48) condition = "Foggy";
+            else if (code >= 51 && code <= 67) condition = "Rainy";
+            else if (code >= 71 && code <= 77) condition = "Snowy";
+            else if (code >= 80 && code <= 82) condition = "Showers";
+            else if (code >= 95) condition = "Stormy";
+
+            const localLoc = {
+              name: "Current Location",
+              coordinates: [longitude, latitude] as [number, number],
+              temp,
+              condition
+            };
+            setLocalWeather(localLoc);
+            setSelectedLocation(localLoc);
+            setRotation(-longitude);
+          }
+        } catch (error) {
+          console.error("Failed to fetch local weather:", error);
+        }
+      });
+    }
+
     const interval = setInterval(() => {
-      // In a real app, this would be an API call to a weather service
-      // For now we simulate subtle fluctuations
     }, 3600000);
     return () => clearInterval(interval);
   }, []);
