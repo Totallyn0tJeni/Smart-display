@@ -50,8 +50,12 @@ export function registerObjectStorageRoutes(app: Express): void {
       if (!process.env.PRIVATE_OBJECT_DIR) {
         // Local fallback
         const fileId = Math.random().toString(36).substring(7) + "-" + name.replace(/\s+/g, '-');
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+        const host = req.get('host');
+        const absoluteURL = `${protocol}://${host}/api/uploads/local/${fileId}`;
+        
         return res.json({ 
-          uploadURL: `/api/uploads/local/${fileId}`,
+          uploadURL: absoluteURL,
           objectPath: `/uploads/${fileId}`,
           metadata: { name, size, contentType }
         });
