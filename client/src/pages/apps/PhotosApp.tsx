@@ -191,7 +191,7 @@ export function PhotosApp({ onClose, isWidget = false }: PhotosAppProps) {
             key={idx}
             whileHover={{ scale: 1.05 }}
             onClick={() => setCurrentIndex(idx)}
-            className={`aspect-square rounded-lg overflow-hidden border cursor-pointer transition-all relative ${idx === currentIndex ? 'border-white ring-2 ring-white/50' : 'border-white/10 opacity-60'}`}
+            className={`group aspect-square rounded-lg overflow-hidden border cursor-pointer transition-all relative ${idx === currentIndex ? 'border-white ring-2 ring-white/50' : 'border-white/10 opacity-60 hover:opacity-100'}`}
           >
             <img src={photo.url} className="w-full h-full object-cover" alt={`Photo ${idx}`} />
             {photo.id && (
