@@ -1,5 +1,7 @@
 import type { Express } from "express";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import fs from "node:fs";
+import path from "node:path";
 
 /**
  * Register object storage routes for file uploads.
@@ -73,8 +75,6 @@ export function registerObjectStorageRoutes(app: Express): void {
   });
 
   app.put("/api/uploads/local/:id", (req, res) => {
-    const fs = require("fs");
-    const path = require("path");
     const fileId = req.params.id;
     const filePath = path.join(process.cwd(), "uploads", fileId);
     
