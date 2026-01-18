@@ -45,6 +45,16 @@ export function registerObjectStorageRoutes(app: Express): void {
         });
       }
 
+      if (!process.env.PRIVATE_OBJECT_DIR) {
+        // Local fallback
+        const fileId = Math.random().toString(36).substring(7) + "-" + name.replace(/\s+/g, '-');
+        return res.json({ 
+          uploadURL: `/api/uploads/local/${fileId}`,
+          objectPath: `/uploads/${fileId}`,
+          metadata: { name, size, contentType }
+        });
+      }
+
       const uploadURL = await objectStorageService.getObjectEntityUploadURL();
 
       // Extract object path from the presigned URL for later reference
@@ -60,6 +70,25 @@ export function registerObjectStorageRoutes(app: Express): void {
       console.error("Error generating upload URL:", error);
       res.status(500).json({ error: "Failed to generate upload URL" });
     }
+  });
+
+  app.put("/api/uploads/local/:id", (req, res) => {
+    const fs = require("fs");
+    const path = require("path");
+    const fileId = req.params.id;
+    const filePath = path.join(process.cwd(), "uploads", fileId);
+    
+    const writer = fs.createWriteStream(filePath);
+    req.pipe(writer);
+    
+    writer.on("finish", () => {
+      res.json({ success: true, url: `/uploads/${fileId}` });
+    });
+    
+    writer.on("error", (err: any) => {
+      console.error("Local upload error:", err);
+      res.status(500).json({ error: "Failed to save file locally" });
+    });
   });
 
   /**
