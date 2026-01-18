@@ -265,11 +265,25 @@ export default function Home() {
             </div>
 
             {/* Right Side: Clock and Large Photo Gallery */}
-            <div className="flex-[3] flex flex-col gap-8 items-center justify-center">
+            <div className="flex-[3] flex flex-col gap-8 items-center justify-center relative">
               <ClockWidget />
               
               <div className="w-full max-w-4xl aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative group">
                 <PhotosApp onClose={() => {}} isWidget={true} />
+              </div>
+
+              {/* Spotify Now Playing Widget */}
+              <div className="absolute bottom-[-20px] right-0 z-20">
+                <GlassCard className="p-3 pr-6 flex items-center gap-4 bg-black/40 border-white/10 rounded-2xl shadow-xl hover-elevate cursor-pointer" onClick={() => setActiveApp('spotify')}>
+                  <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10">
+                    <img src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?auto=format&fit=crop&w=100&q=80" alt="Album Cover" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-white text-sm font-bold truncate max-w-[150px]">Constellations</span>
+                    <span className="text-white/60 text-xs truncate max-w-[150px]">Jade LeMac</span>
+                  </div>
+                  <Music className="w-4 h-4 text-green-400 ml-2 animate-pulse" />
+                </GlassCard>
               </div>
             </div>
           </motion.div>

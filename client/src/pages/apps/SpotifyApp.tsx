@@ -1,5 +1,5 @@
 import { GlassCard } from "@/components/GlassCard";
-import { Music, Layout, Disc } from "lucide-react";
+import { Music, Layout, Disc, ListMusic } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface SpotifyAppProps {
@@ -23,10 +23,14 @@ export function SpotifyApp({ onClose }: SpotifyAppProps) {
           <TabsTrigger value="browse" className="px-6 data-[state=active]:bg-white/10 text-white flex items-center gap-2">
             <Layout className="w-4 h-4" /> Browse
           </TabsTrigger>
+          <TabsTrigger value="playlists" className="px-6 data-[state=active]:bg-white/10 text-white flex items-center gap-2">
+            <ListMusic className="w-4 h-4" /> Playlists
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="player" className="flex-1 min-h-0 mt-0">
           <GlassCard variant="panel" className="w-full h-full overflow-hidden bg-black/40">
+            {/* Using a more dynamic-looking embed that mimics a full player better */}
             <iframe 
               src="https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M?utm_source=generator&theme=0" 
               width="100%" 
@@ -44,6 +48,20 @@ export function SpotifyApp({ onClose }: SpotifyAppProps) {
           <GlassCard variant="panel" className="w-full h-full overflow-hidden bg-black/40">
             <iframe 
               src="https://open.spotify.com/?" 
+              width="100%" 
+              height="100%" 
+              frameBorder="0" 
+              allowFullScreen 
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+              className="w-full h-full"
+            />
+          </GlassCard>
+        </TabsContent>
+
+        <TabsContent value="playlists" className="flex-1 min-h-0 mt-0">
+          <GlassCard variant="panel" className="w-full h-full overflow-hidden bg-black/40">
+            <iframe 
+              src="https://open.spotify.com/embed/section/0JQ5DAqbVvw6XvdfZZvSda" 
               width="100%" 
               height="100%" 
               frameBorder="0" 
