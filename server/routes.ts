@@ -5,11 +5,29 @@ import { api } from "@shared/routes";
 import { z } from "zod";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 
-// ================= LED HARDWARE LOGIC (Raspberry Pi Simulation) =================
-// In a real RPi environment, you would use a library like 'pigpio' or 'onoff'
-// to control physical pins 17 (R), 27 (G), 22 (B).
+// ================= LED HARDWARE LOGIC (Raspberry Pi 5) =================
+let ledR: any, ledG: any, ledB: any;
+
+async function initGpio() {
+  try {
+    // @ts-ignore
+    const { Gpio } = await import("onoff");
+    ledR = new Gpio(17, 'out');
+    ledG = new Gpio(27, 'out');
+    ledB = new Gpio(22, 'out');
+    console.log("Raspberry Pi GPIO initialized on pins 17, 27, 22");
+  } catch (err) {
+    console.log("GPIO initialization failed (likely not on a Raspberry Pi or missing onoff). Using simulation mode.");
+    ledR = ledG = ledB = { writeSync: (val: number) => {} };
+  }
+}
+
+initGpio();
+
 function applyRgbHardware(r: number, g: number, b: number) {
-  // console.log(`Applying Hardware RGB: [${r}, ${g}, ${b}]`);
+  if (ledR && ledR.writeSync) ledR.writeSync(r > 127 ? 1 : 0);
+  if (ledG && ledG.writeSync) ledG.writeSync(g > 127 ? 1 : 0);
+  if (ledB && ledB.writeSync) ledB.writeSync(b > 127 ? 1 : 0);
 }
 
 function ledHardwareLoop() {
@@ -29,10 +47,10 @@ function ledHardwareLoop() {
     if (state.mode === "static") {
       applyRgbHardware(rBase, gBase, bBase);
     } else if (state.mode === "pulse") {
-      const v = Math.abs((t % 100) - 50) * 5;
+      const v = Math.abs((t % 100) - 50) * 5.1; // 0-255
       applyRgbHardware(v, v, v);
     } else if (state.mode === "fade") {
-      applyRgbHardware((t * 3) % 255, (t * 5) % 255, (t * 7) % 255);
+      applyRgbHardware((t * 3) % 256, (t * 5) % 256, (t * 7) % 256);
     } else if (state.mode === "sunrise") {
       applyRgbHardware(Math.min(t * 2, 255), Math.min(t, 120), Math.min(t / 3, 60));
     }
