@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Plus, Image as ImageIcon, ExternalLink, ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
+import { Plus, Image as ImageIcon, ExternalLink, ChevronLeft, ChevronRight, Pause, Play, Upload } from "lucide-react";
 import { api } from "@shared/routes";
 import { GlassCard } from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import { ObjectUploader } from "@/components/ObjectUploader";
+import { useUpload } from "@/hooks/use-upload";
 
 interface PhotosAppProps {
   onClose: () => void;
@@ -34,6 +36,25 @@ export function PhotosApp({ onClose, isWidget = false }: PhotosAppProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const { toast } = useToast();
+
+  const { getUploadParameters } = useUpload();
+
+  const createPhotoMutation = useMutation({
+    mutationFn: async (url: string) => {
+      return apiRequest("POST", api.photos.create.path, {
+        url,
+        caption: "Uploaded Photo",
+        source: "local"
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.photos.list.path] });
+      toast({ title: "Success", description: "Photo uploaded successfully" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to upload photo", variant: "destructive" });
+    }
+  });
 
   const { data: apiPhotos } = useQuery({
     queryKey: [api.photos.list.path],
@@ -80,11 +101,26 @@ export function PhotosApp({ onClose, isWidget = false }: PhotosAppProps) {
         <h2 className="text-2xl font-bold text-white flex items-center gap-2">
           <ImageIcon className="w-6 h-6" /> VSCO Gallery
         </h2>
-        <Button variant="outline" className="border-white/10 bg-white/5 text-white" asChild>
-          <a href="https://vsco.co/tottalyn0tjeni/gallery" target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="w-4 h-4 mr-2" /> View Original
-          </a>
-        </Button>
+        <div className="flex gap-2">
+          <ObjectUploader
+            onGetUploadParameters={getUploadParameters}
+            onComplete={(result) => {
+              result.successful.forEach((file) => {
+                if (file.uploadURL) {
+                  const url = file.uploadURL.split('?')[0];
+                  createPhotoMutation.mutate(url);
+                }
+              });
+            }}
+          >
+            <Upload className="w-4 h-4 mr-2" /> Upload
+          </ObjectUploader>
+          <Button variant="outline" className="border-white/10 bg-white/5 text-white" asChild>
+            <a href="https://vsco.co/tottalyn0tjeni/gallery" target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="w-4 h-4 mr-2" /> View Original
+            </a>
+          </Button>
+        </div>
       </div>
 
       <div className="relative aspect-video rounded-3xl overflow-hidden border border-white/10 group shadow-2xl">

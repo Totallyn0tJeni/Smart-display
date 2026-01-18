@@ -3,6 +3,7 @@ import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
+import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 
 // ================= LED HARDWARE LOGIC (Raspberry Pi Simulation) =================
 // In a real RPi environment, you would use a library like 'pigpio' or 'onoff'
@@ -147,6 +148,8 @@ export async function registerRoutes(
       low: 18
     });
   });
+
+  registerObjectStorageRoutes(app);
 
   return httpServer;
 }
