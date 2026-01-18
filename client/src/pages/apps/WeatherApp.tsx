@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Cloud, Sun, CloudRain, Wind, Thermometer, MapPin, Navigation, Globe, Search, X } from "lucide-react";
 import { api } from "@shared/routes";
