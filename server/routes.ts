@@ -95,6 +95,15 @@ export async function registerRoutes(
     }
   });
 
+  app.delete("/api/photos/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid photo ID" });
+    }
+    await storage.deletePhoto(id);
+    res.json({ success: true });
+  });
+
   // VSCO Simulation Endpoint
   app.post("/api/vsco/import", async (req, res) => {
     const { url } = req.body;

@@ -19,6 +19,7 @@ export interface IStorage {
   
   getPhotos(): Promise<Photo[]>;
   createPhoto(photo: InsertPhoto): Promise<Photo>;
+  deletePhoto(id: number): Promise<void>;
 
   startFocusSession(session: InsertFocusSession): Promise<FocusSession>;
   getCurrentFocusSession(): Promise<FocusSession | undefined>;
@@ -62,6 +63,10 @@ export class DatabaseStorage implements IStorage {
       source: photo.source || "local"
     }).returning();
     return newPhoto;
+  }
+
+  async deletePhoto(id: number): Promise<void> {
+    await db.delete(photos).where(eq(photos.id, id));
   }
 
   async startFocusSession(session: InsertFocusSession): Promise<FocusSession> {

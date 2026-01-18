@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Plus, Image as ImageIcon, ExternalLink, ChevronLeft, ChevronRight, Pause, Play, Upload } from "lucide-react";
+import { Plus, Image as ImageIcon, ExternalLink, ChevronLeft, ChevronRight, Pause, Play, Upload, Trash2 } from "lucide-react";
 import { api } from "@shared/routes";
 import { GlassCard } from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
@@ -56,13 +56,26 @@ export function PhotosApp({ onClose, isWidget = false }: PhotosAppProps) {
     }
   });
 
+  const deletePhotoMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest("DELETE", `/api/photos/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.photos.list.path] });
+      toast({ title: "Success", description: "Photo deleted successfully" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to delete photo", variant: "destructive" });
+    }
+  });
+
   const { data: apiPhotos } = useQuery({
     queryKey: [api.photos.list.path],
   });
 
   const photos = apiPhotos && (apiPhotos as any).length > 0 
-    ? [...(apiPhotos as any).map((p: any) => p.url), ...VSCO_GALLERY_PHOTOS] 
-    : VSCO_GALLERY_PHOTOS;
+    ? [...(apiPhotos as any).map((p: any) => ({ url: p.url, id: p.id })), ...VSCO_GALLERY_PHOTOS.map(url => ({ url, id: null }))] 
+    : VSCO_GALLERY_PHOTOS.map(url => ({ url, id: null }));
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -85,7 +98,7 @@ export function PhotosApp({ onClose, isWidget = false }: PhotosAppProps) {
             exit={{ opacity: 0 }}
             transition={{ duration: 1 }}
             className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${photos[currentIndex]})` }}
+            style={{ backgroundImage: `url(${photos[currentIndex].url})` }}
           />
         </AnimatePresence>
         <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
@@ -137,7 +150,7 @@ export function PhotosApp({ onClose, isWidget = false }: PhotosAppProps) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8 }}
             className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${photos[currentIndex]})` }}
+            style={{ backgroundImage: `url(${photos[currentIndex].url})` }}
           />
         </AnimatePresence>
 
@@ -147,9 +160,20 @@ export function PhotosApp({ onClose, isWidget = false }: PhotosAppProps) {
           <button onClick={() => setCurrentIndex((prev) => (prev - 1 + photos.length) % photos.length)} className="p-3 rounded-full bg-white/10 backdrop-blur-md text-white hover:bg-white/20">
             <ChevronLeft className="w-8 h-8" />
           </button>
-          <button onClick={() => setIsPlaying(!isPlaying)} className="p-5 rounded-full bg-white/10 backdrop-blur-md text-white hover:bg-white/20">
-            {isPlaying ? <Pause className="w-10 h-10" /> : <Play className="w-10 h-10 ml-1" />}
-          </button>
+          <div className="flex flex-col items-center gap-4">
+            <button onClick={() => setIsPlaying(!isPlaying)} className="p-5 rounded-full bg-white/10 backdrop-blur-md text-white hover:bg-white/20">
+              {isPlaying ? <Pause className="w-10 h-10" /> : <Play className="w-10 h-10 ml-1" />}
+            </button>
+            {photos[currentIndex].id && (
+              <button 
+                onClick={() => deletePhotoMutation.mutate(photos[currentIndex].id!)} 
+                className="p-3 rounded-full bg-red-500/20 backdrop-blur-md text-red-500 border border-red-500/30 hover:bg-red-500/40 transition-all"
+                title="Delete photo"
+              >
+                <Trash2 className="w-6 h-6" />
+              </button>
+            )}
+          </div>
           <button onClick={() => setCurrentIndex((prev) => (prev + 1) % photos.length)} className="p-3 rounded-full bg-white/10 backdrop-blur-md text-white hover:bg-white/20">
             <ChevronRight className="w-8 h-8" />
           </button>
@@ -157,14 +181,14 @@ export function PhotosApp({ onClose, isWidget = false }: PhotosAppProps) {
       </div>
 
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-        {photos.map((url, idx) => (
+        {photos.map((photo, idx) => (
           <motion.div
             key={idx}
             whileHover={{ scale: 1.05 }}
             onClick={() => setCurrentIndex(idx)}
-            className={`aspect-square rounded-lg overflow-hidden border cursor-pointer transition-all ${idx === currentIndex ? 'border-white ring-2 ring-white/50' : 'border-white/10 opacity-60'}`}
+            className={`aspect-square rounded-lg overflow-hidden border cursor-pointer transition-all relative ${idx === currentIndex ? 'border-white ring-2 ring-white/50' : 'border-white/10 opacity-60'}`}
           >
-            <img src={url} className="w-full h-full object-cover" alt={`Photo ${idx}`} />
+            <img src={photo.url} className="w-full h-full object-cover" alt={`Photo ${idx}`} />
           </motion.div>
         ))}
       </div>

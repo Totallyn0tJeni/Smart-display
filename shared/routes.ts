@@ -51,6 +51,14 @@ export const api = {
         400: errorSchemas.validation,
       },
     },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/photos/:id',
+      responses: {
+        200: z.object({ success: z.boolean() }),
+        404: errorSchemas.notFound,
+      },
+    },
   },
   focus: {
     start: {
