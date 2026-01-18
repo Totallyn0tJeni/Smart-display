@@ -7,9 +7,9 @@ interface CalendarAppProps {
 }
 
 export function CalendarApp({ onClose }: CalendarAppProps) {
-  // Use a simple, authenticated-compatible Google Calendar embed URL
-  // The 'src' should ideally be the user's primary calendar once they sign in
-  const baseUrl = `https://calendar.google.com/calendar/u/0/embed?showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=1&bgcolor=%23ffffff`;
+  // Using the standard embed URL which is more reliable for iframes
+  // User will need to sign in to Google in their browser for this to show their data
+  const baseUrl = `https://calendar.google.com/calendar/embed?showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=1&bgcolor=%23ffffff`;
 
   const VIEWS = [
     { id: "MONTH", label: "Month", icon: LayoutGrid },
@@ -46,6 +46,7 @@ export function CalendarApp({ onClose }: CalendarAppProps) {
                 height="100%" 
                 frameBorder="0" 
                 scrolling="no"
+                allow="token-attribution; identity-credentials-get"
                 className="w-full h-full rounded-2xl filter contrast-100"
               ></iframe>
             </GlassCard>
