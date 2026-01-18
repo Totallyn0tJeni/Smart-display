@@ -16,7 +16,8 @@ import {
   X,
   Youtube,
   StickyNote,
-  Heart
+  Heart,
+  ExternalLink
 } from "lucide-react";
 import { SiYoutube } from "react-icons/si";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -40,36 +41,41 @@ import { CalendarApp } from "./apps/CalendarApp";
 import { LightsApp } from "./apps/LightsApp";
 import { FlocusApp } from "./apps/FlocusApp";
 import { WeatherApp } from "./apps/WeatherApp";
-import { MoviesApp } from "./apps/MoviesApp";
+import { Button } from "@/components/ui/button";
 
-function YouTubeApp({ onClose }: { onClose: () => void }) {
+function ExternalLinkApp({ title, url, icon: Icon, color }: { title: string, url: string, icon: any, color: string }) {
+  useEffect(() => {
+    window.open(url, '_blank');
+  }, [url]);
+
   return (
-    <div className="w-full h-full flex flex-col p-8 gap-6">
-      <h2 className="text-3xl font-bold text-white flex items-center gap-3">
-        <SiYoutube className="w-8 h-8 text-red-600" /> YouTube
-      </h2>
-      <GlassCard variant="panel" className="flex-1 w-full overflow-hidden bg-black/40">
-        <iframe 
-          src="https://www.youtube.com/embed?listType=user_uploads&list=vsco" 
-          width="100%" 
-          height="100%" 
-          frameBorder="0" 
-          allowFullScreen 
-          allow="autoplay; encrypted-media" 
-          className="w-full h-full"
-        />
-      </GlassCard>
+    <div className="w-full h-full flex flex-col items-center justify-center p-8 gap-6 text-center">
+      <div className={`w-24 h-24 rounded-full flex items-center justify-center bg-gradient-to-br ${color} shadow-2xl border border-white/20 mb-4`}>
+        <Icon className="w-12 h-12 text-white" />
+      </div>
+      <h2 className="text-3xl font-bold text-white">Opening {title}</h2>
+      <p className="text-white/60 max-w-md">
+        We're opening {title} in a new tab for the best experience. If it didn't open automatically, click the button below.
+      </p>
+      <Button 
+        size="lg" 
+        className="bg-white text-black hover:bg-white/90 font-bold rounded-xl px-8"
+        onClick={() => window.open(url, '_blank')}
+      >
+        <ExternalLink className="w-5 h-5 mr-2" /> Open {title}
+      </Button>
     </div>
   );
 }
 
-type AppType = "spotify" | "photos" | "calendar" | "lights" | "flocus" | "weather" | "movies" | "settings" | "youtube" | null;
+type AppType = "spotify" | "photos" | "calendar" | "lights" | "flocus" | "weather" | "movies" | "settings" | "youtube" | "notion" | null;
 
 const APPS = [
   { id: "weather", icon: Cloud, label: "Weather", color: "from-sky-400/50 to-blue-500/50" },
   { id: "photos", icon: ImageIcon, label: "Photos", color: "from-pink-500/50 to-rose-500/50" },
   { id: "movies", icon: Film, label: "Movies", color: "from-indigo-600/50 to-violet-600/50" },
   { id: "youtube", icon: SiYoutube, label: "YouTube", color: "from-red-500/50 to-orange-600/50" },
+  { id: "notion", icon: StickyNote, label: "Notion", color: "from-gray-400/50 to-gray-600/50" },
   { id: "calendar", icon: CalendarIcon, label: "Calendar", color: "from-blue-500/50 to-cyan-500/50" },
   { id: "spotify", icon: Music, label: "Spotify", color: "from-green-500/50 to-emerald-500/50" },
   { id: "lights", icon: Lightbulb, label: "Lights", color: "from-yellow-500/50 to-orange-500/50" },
@@ -139,8 +145,30 @@ export default function Home() {
       case "lights": return <LightsApp onClose={() => setActiveApp(null)} />;
       case "flocus": return <FlocusApp onClose={() => setActiveApp(null)} />;
       case "weather": return <WeatherApp onClose={() => setActiveApp(null)} />;
-      case "movies": return <MoviesApp onClose={() => setActiveApp(null)} />;
-      case "youtube": return <YouTubeApp onClose={() => setActiveApp(null)} />;
+      case "movies": return (
+        <ExternalLinkApp 
+          title="Movies" 
+          url="https://www.imdb.com" 
+          icon={Film} 
+          color="from-indigo-600/50 to-violet-600/50" 
+        />
+      );
+      case "youtube": return (
+        <ExternalLinkApp 
+          title="YouTube" 
+          url="https://www.youtube.com" 
+          icon={SiYoutube} 
+          color="from-red-500/50 to-orange-600/50" 
+        />
+      );
+      case "notion": return (
+        <ExternalLinkApp 
+          title="Notion" 
+          url="https://www.notion.so" 
+          icon={StickyNote} 
+          color="from-gray-400/50 to-gray-600/50" 
+        />
+      );
       case "settings": return (
         <div className="p-8 flex flex-col gap-8 overflow-y-auto">
           <div className="space-y-4">
