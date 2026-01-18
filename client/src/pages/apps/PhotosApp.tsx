@@ -74,8 +74,8 @@ export function PhotosApp({ onClose, isWidget = false }: PhotosAppProps) {
   });
 
   const photos = apiPhotos && (apiPhotos as any).length > 0 
-    ? [...(apiPhotos as any).map((p: any) => ({ url: p.url, id: p.id })), ...VSCO_GALLERY_PHOTOS.map(url => ({ url, id: null }))] 
-    : VSCO_GALLERY_PHOTOS.map(url => ({ url, id: null }));
+    ? [...(apiPhotos as any).map((p: any) => ({ url: p.url, id: p.id, canDelete: true })), ...VSCO_GALLERY_PHOTOS.map(url => ({ url, id: null, canDelete: false }))] 
+    : VSCO_GALLERY_PHOTOS.map(url => ({ url, id: null, canDelete: false }));
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -166,7 +166,7 @@ export function PhotosApp({ onClose, isWidget = false }: PhotosAppProps) {
             <button onClick={() => setIsPlaying(!isPlaying)} className="p-5 rounded-full bg-white/10 backdrop-blur-md text-white hover:bg-white/20">
               {isPlaying ? <Pause className="w-10 h-10" /> : <Play className="w-10 h-10 ml-1" />}
             </button>
-            {photos[currentIndex].id && (
+            {photos[currentIndex].canDelete && (
               <button 
                 onClick={(e) => {
                   e.stopPropagation();
@@ -194,7 +194,7 @@ export function PhotosApp({ onClose, isWidget = false }: PhotosAppProps) {
             className={`group aspect-square rounded-lg overflow-hidden border cursor-pointer transition-all relative ${idx === currentIndex ? 'border-white ring-2 ring-white/50' : 'border-white/10 opacity-60 hover:opacity-100'}`}
           >
             <img src={photo.url} className="w-full h-full object-cover" alt={`Photo ${idx}`} />
-            {photo.id && (
+            {photo.canDelete && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
