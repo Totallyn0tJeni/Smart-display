@@ -50,7 +50,7 @@ export function WeatherApp({ onClose }: WeatherAppProps) {
   const [selectedLocation, setSelectedLocation] = useState(LOCATIONS[0]);
   const [rotation, setRotation] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
-  const [localWeather, setLocalWeather] = useState<{temp: number, condition: string, name: string} | null>(null);
+  const [localWeather, setLocalWeather] = useState<{name: string, coordinates: [number, number], temp: number, condition: string} | null>(null);
 
   const filteredLocations = useMemo(() => {
     const base = localWeather ? [localWeather, ...LOCATIONS] : LOCATIONS;
