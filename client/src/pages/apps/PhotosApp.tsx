@@ -121,7 +121,7 @@ export function PhotosApp({ onClose, isWidget = false }: PhotosAppProps) {
         <h2 className="text-2xl font-bold text-white flex items-center gap-2">
           <ImageIcon className="w-6 h-6" /> VSCO Gallery
         </h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 mr-10">
           <ObjectUploader
             maxNumberOfFiles={10}
             onGetUploadParameters={getUploadParameters}
