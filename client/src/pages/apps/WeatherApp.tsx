@@ -209,7 +209,7 @@ export function WeatherApp({ onClose }: WeatherAppProps) {
             }}
             className="w-full h-full"
           >
-            <Sphere stroke="#ffffff10" strokeWidth={0.5} fill="transparent" />
+            <Sphere id="weather-sphere" stroke="#ffffff10" strokeWidth={0.5} fill="transparent" />
             <Graticule stroke="#ffffff10" strokeWidth={0.5} />
             <Geographies geography={geoUrl}>
               {({ geographies }) =>
