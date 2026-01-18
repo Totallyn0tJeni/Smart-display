@@ -119,16 +119,18 @@ export function PhotosApp({ onClose, isWidget = false }: PhotosAppProps) {
             maxNumberOfFiles={10}
             onGetUploadParameters={getUploadParameters}
             onComplete={(result) => {
-              result.successful.forEach((file) => {
-                if (file.uploadURL) {
-                  const url = file.uploadURL.split('?')[0];
-                  // If it's a replit object storage URL, convert to /objects/ path
-                  const storagePath = url.includes('.private/uploads/') 
-                    ? `/objects/uploads/${url.split('/uploads/')[1]}`
-                    : url;
-                  createPhotoMutation.mutate(storagePath);
-                }
-              });
+              if (result?.successful) {
+                result.successful.forEach((file) => {
+                  if (file.uploadURL) {
+                    const url = file.uploadURL.split('?')[0];
+                    // If it's a replit object storage URL, convert to /objects/ path
+                    const storagePath = url.includes('.private/uploads/') 
+                      ? `/objects/uploads/${url.split('/uploads/')[1]}`
+                      : url;
+                    createPhotoMutation.mutate(storagePath);
+                  }
+                });
+              }
             }}
           >
             <Upload className="w-4 h-4 mr-2" /> Upload
