@@ -43,27 +43,35 @@ import { FlocusApp } from "./apps/FlocusApp";
 import { WeatherApp } from "./apps/WeatherApp";
 import { Button } from "@/components/ui/button";
 
-function ExternalLinkApp({ title, url, icon: Icon, color }: { title: string, url: string, icon: any, color: string }) {
-  useEffect(() => {
-    window.open(url, '_blank');
-  }, [url]);
-
+function ExternalLinkApp({ title, url, icon: Icon, color, secondaryUrl, secondaryTitle }: { title: string, url: string, icon: any, color: string, secondaryUrl?: string, secondaryTitle?: string }) {
   return (
     <div className="w-full h-full flex flex-col items-center justify-center p-8 gap-6 text-center">
       <div className={`w-24 h-24 rounded-full flex items-center justify-center bg-gradient-to-br ${color} shadow-2xl border border-white/20 mb-4`}>
         <Icon className="w-12 h-12 text-white" />
       </div>
-      <h2 className="text-3xl font-bold text-white">Opening {title}</h2>
+      <h2 className="text-3xl font-bold text-white">{title}</h2>
       <p className="text-white/60 max-w-md">
-        We're opening {title} in a new tab for the best experience. If it didn't open automatically, click the button below.
+        Choose a service to open in a new tab for the best experience.
       </p>
-      <Button 
-        size="lg" 
-        className="bg-white text-black hover:bg-white/90 font-bold rounded-xl px-8"
-        onClick={() => window.open(url, '_blank')}
-      >
-        <ExternalLink className="w-5 h-5 mr-2" /> Open {title}
-      </Button>
+      <div className="flex flex-wrap justify-center gap-4">
+        <Button 
+          size="lg" 
+          className="bg-white text-black hover:bg-white/90 font-bold rounded-xl px-8"
+          onClick={() => window.open(url, '_blank')}
+        >
+          <ExternalLink className="w-5 h-5 mr-2" /> Open {secondaryUrl ? title : title}
+        </Button>
+        {secondaryUrl && (
+          <Button 
+            size="lg" 
+            variant="outline"
+            className="border-white/20 bg-white/5 text-white hover:bg-white/10 font-bold rounded-xl px-8"
+            onClick={() => window.open(secondaryUrl, '_blank')}
+          >
+            <ExternalLink className="w-5 h-5 mr-2" /> Open {secondaryTitle}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
@@ -147,8 +155,10 @@ export default function Home() {
       case "weather": return <WeatherApp onClose={() => setActiveApp(null)} />;
       case "movies": return (
         <ExternalLinkApp 
-          title="Movies" 
-          url="https://www.imdb.com" 
+          title="Netflix" 
+          url="https://www.netflix.com" 
+          secondaryTitle="Tubi"
+          secondaryUrl="https://tubitv.com"
           icon={Film} 
           color="from-indigo-600/50 to-violet-600/50" 
         />
