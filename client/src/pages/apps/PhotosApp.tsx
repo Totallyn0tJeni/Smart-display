@@ -103,6 +103,7 @@ export function PhotosApp({ onClose, isWidget = false }: PhotosAppProps) {
         </h2>
         <div className="flex gap-2">
           <ObjectUploader
+            maxNumberOfFiles={10}
             onGetUploadParameters={getUploadParameters}
             onComplete={(result) => {
               result.successful.forEach((file) => {
