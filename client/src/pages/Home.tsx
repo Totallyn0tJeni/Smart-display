@@ -306,10 +306,10 @@ export default function Home() {
             {/* Right Side: Clock and Large Photo Gallery */}
             <div className="flex-[3] flex flex-col gap-6 items-center justify-center relative">
               <div className="flex items-start gap-8 w-full max-w-5xl justify-center relative">
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4 self-stretch">
                   <ClockWidget />
                   {/* Daily Affirmation */}
-                  <GlassCard className="p-4 bg-white/5 border-white/10 rounded-2xl max-w-[300px]">
+                  <GlassCard className="p-4 bg-white/5 border-white/10 rounded-2xl max-w-[300px] flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <Heart className="w-3 h-3 text-pink-400" />
                       <span className="text-[10px] uppercase tracking-widest text-white/40 font-bold">Daily Affirmation</span>
@@ -320,7 +320,7 @@ export default function Home() {
                   </GlassCard>
                 </div>
                 
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4 self-stretch">
                   {/* Spotify Now Playing Widget */}
                   <GlassCard className="p-3 pr-6 flex items-center gap-4 bg-black/40 border-white/10 rounded-2xl shadow-xl hover-elevate cursor-pointer transition-all duration-300" onClick={() => setActiveApp('spotify')}>
                     <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10">
@@ -334,7 +334,7 @@ export default function Home() {
                   </GlassCard>
 
                   {/* Quick Notes Widget */}
-                  <GlassCard className="p-4 bg-white/5 border-white/10 rounded-2xl w-full min-w-[280px]">
+                  <GlassCard className="p-4 bg-white/5 border-white/10 rounded-2xl w-full min-w-[280px] flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <StickyNote className="w-4 h-4 text-yellow-400" />
                       <span className="text-xs uppercase tracking-widest text-white/40 font-bold">Quick Notes</span>
@@ -343,7 +343,7 @@ export default function Home() {
                       value={quickNotes}
                       onChange={(e) => setQuickNotes(e.target.value)}
                       placeholder="Type a quick note..."
-                      className="w-full bg-transparent border-none text-white text-sm placeholder:text-white/20 focus:ring-0 resize-none h-20 p-0"
+                      className="w-full bg-transparent border-none text-white text-sm placeholder:text-white/20 focus:ring-0 resize-none h-full min-h-[100px] p-0"
                     />
                   </GlassCard>
                 </div>
