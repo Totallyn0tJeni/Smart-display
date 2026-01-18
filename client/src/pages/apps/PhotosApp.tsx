@@ -194,6 +194,18 @@ export function PhotosApp({ onClose, isWidget = false }: PhotosAppProps) {
             className={`aspect-square rounded-lg overflow-hidden border cursor-pointer transition-all relative ${idx === currentIndex ? 'border-white ring-2 ring-white/50' : 'border-white/10 opacity-60'}`}
           >
             <img src={photo.url} className="w-full h-full object-cover" alt={`Photo ${idx}`} />
+            {photo.id && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deletePhotoMutation.mutate(photo.id!);
+                }}
+                className="absolute top-1 right-1 p-1.5 rounded-full bg-red-500/80 text-white opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                title="Delete photo"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            )}
           </motion.div>
         ))}
       </div>
