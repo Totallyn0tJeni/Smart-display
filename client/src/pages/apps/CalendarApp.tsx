@@ -7,9 +7,9 @@ interface CalendarAppProps {
 }
 
 export function CalendarApp({ onClose }: CalendarAppProps) {
-  // Base embed URL - user can customize this
-  const baseSource = "en.usa%23holiday%40group.v.calendar.google.com";
-  const baseUrl = `https://calendar.google.com/calendar/embed?src=${baseSource}&ctz=America%2FNew_York&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&bgcolor=%23ffffff`;
+  // Use a simple, authenticated-compatible Google Calendar embed URL
+  // The 'src' should ideally be the user's primary calendar once they sign in
+  const baseUrl = `https://calendar.google.com/calendar/u/0/embed?showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=1&bgcolor=%23ffffff`;
 
   const VIEWS = [
     { id: "MONTH", label: "Month", icon: LayoutGrid },
@@ -23,6 +23,7 @@ export function CalendarApp({ onClose }: CalendarAppProps) {
         <h2 className="text-3xl font-bold text-white flex items-center gap-3">
           <CalendarIcon className="w-8 h-8 text-blue-400" /> My Schedule
         </h2>
+        <p className="text-sm text-white/60 italic">Sign in to your Google account in the window below to see your events</p>
       </div>
       
       <Tabs defaultValue="MONTH" className="flex-1 flex flex-col min-h-0">

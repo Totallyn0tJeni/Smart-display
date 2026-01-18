@@ -36,7 +36,10 @@ The `shared/` directory contains code used by both frontend and backend:
 - `schema.ts`: Database table definitions and Zod validation schemas
 - `routes.ts`: API route definitions with request/response type contracts
 
-### Key Design Decisions
+### Calendar Integration
+- **Approach**: Using an interactive Google Calendar iframe embed that prompts for user login directly within the frame.
+- **Decision**: Avoided backend OAuth for simplicity and to respect user's preference for direct account access.
+- **Last Updated**: January 18, 2026
 
 1. **Glassmorphism UI**: Heavy use of `backdrop-blur`, semi-transparent backgrounds, and subtle borders to create a modern, translucent aesthetic suitable for ambient displays.
 
