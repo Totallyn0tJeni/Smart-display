@@ -80,7 +80,11 @@ export function registerObjectStorageRoutes(app: Express): void {
 
   app.put("/api/uploads/local/:id", (req, res) => {
     const fileId = req.params.id;
-    const filePath = path.join(process.cwd(), "uploads", fileId);
+    const uploadDir = path.join(process.cwd(), "uploads");
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    const filePath = path.join(uploadDir, fileId);
     
     const writer = fs.createWriteStream(filePath);
     req.pipe(writer);
