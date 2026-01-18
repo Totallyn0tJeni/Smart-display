@@ -108,7 +108,11 @@ export function PhotosApp({ onClose, isWidget = false }: PhotosAppProps) {
               result.successful.forEach((file) => {
                 if (file.uploadURL) {
                   const url = file.uploadURL.split('?')[0];
-                  createPhotoMutation.mutate(url);
+                  // If it's a replit object storage URL, convert to /objects/ path
+                  const storagePath = url.includes('.private/uploads/') 
+                    ? `/objects/uploads/${url.split('/uploads/')[1]}`
+                    : url;
+                  createPhotoMutation.mutate(storagePath);
                 }
               });
             }}
