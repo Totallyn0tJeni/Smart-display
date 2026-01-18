@@ -16,8 +16,8 @@ interface WeatherAppProps {
 
 const LOCATIONS = [
   // Canada
-  { name: "Brampton", coordinates: [-79.7624, 43.7315], temp: 1, condition: "Cloudy" },
-  { name: "Toronto", coordinates: [-79.3832, 43.6532], temp: 2, condition: "Cloudy" },
+  { name: "Brampton", coordinates: [-79.7624, 43.7315], temp: -9, condition: "Cloudy" },
+  { name: "Toronto", coordinates: [-79.3832, 43.6532], temp: -8, condition: "Cloudy" },
   { name: "Vancouver", coordinates: [-123.1207, 49.2827], temp: 8, condition: "Rainy" },
   { name: "Montreal", coordinates: [-73.5673, 45.5017], temp: -2, condition: "Snow" },
   { name: "Calgary", coordinates: [-114.0719, 51.0447], temp: -5, condition: "Clear" },

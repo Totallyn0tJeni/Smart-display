@@ -14,12 +14,24 @@ import {
   Film,
   Settings,
   X,
-  Youtube
+  Youtube,
+  StickyNote,
+  Heart
 } from "lucide-react";
 import { SiYoutube } from "react-icons/si";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { api } from "@shared/routes";
+
+const AFFIRMATIONS = [
+  "You are capable of amazing things.",
+  "Your potential is limitless.",
+  "Make today incredible.",
+  "Focus on the progress, not perfection.",
+  "Believe in yourself and all that you are.",
+  "Your energy creates your reality.",
+  "Small steps lead to big results."
+];
 
 // App Components
 import { SpotifyApp } from "./apps/SpotifyApp";
@@ -84,6 +96,8 @@ export default function Home() {
   const [activeApp, setActiveApp] = useState<AppType>(null);
   const [customStart, setCustomStart] = useState("#667eea");
   const [customEnd, setCustomEnd] = useState("#764ba2");
+  const [quickNotes, setQuickNotes] = useState("");
+  const [affirmationIdx] = useState(() => Math.floor(Math.random() * AFFIRMATIONS.length));
 
   const { data: ledState } = useQuery({
     queryKey: [api.led.get.path],
@@ -218,6 +232,31 @@ export default function Home() {
       {/* Background Dark Overlay */}
       <div className={`absolute inset-0 transition-opacity duration-1000 ${isNightMode ? 'bg-black/60' : 'bg-black/20'}`} />
 
+      {/* Enhanced Animated Background Elements */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.2, 1],
+            x: [0, 50, 0],
+            y: [0, 30, 0],
+            opacity: [0.1, 0.2, 0.1] 
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-blue-500/20 rounded-full blur-[100px]"
+        />
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.3, 1],
+            x: [0, -40, 0],
+            y: [0, 60, 0],
+            opacity: [0.1, 0.15, 0.1] 
+          }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+          className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-purple-500/20 rounded-full blur-[100px]"
+        />
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-[0.03] mix-blend-overlay" />
+      </div>
+
       {/* Night Mode Toggle */}
       <div className="absolute top-6 right-6 z-50">
         <button
@@ -265,12 +304,24 @@ export default function Home() {
             </div>
 
             {/* Right Side: Clock and Large Photo Gallery */}
-            <div className="flex-[3] flex flex-col gap-8 items-center justify-center relative">
-              <div className="flex items-end gap-6 w-full max-w-4xl justify-center relative">
-                <ClockWidget />
+            <div className="flex-[3] flex flex-col gap-6 items-center justify-center relative">
+              <div className="flex items-start gap-8 w-full max-w-5xl justify-center relative">
+                <div className="flex flex-col gap-4">
+                  <ClockWidget />
+                  {/* Daily Affirmation */}
+                  <GlassCard className="p-4 bg-white/5 border-white/10 rounded-2xl max-w-[300px]">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Heart className="w-3 h-3 text-pink-400" />
+                      <span className="text-[10px] uppercase tracking-widest text-white/40 font-bold">Daily Affirmation</span>
+                    </div>
+                    <p className="text-white/80 text-sm font-medium leading-relaxed italic">
+                      "{AFFIRMATIONS[affirmationIdx]}"
+                    </p>
+                  </GlassCard>
+                </div>
                 
-                {/* Spotify Now Playing Widget - Moved above photos, beside clock */}
-                <div className="mb-2">
+                <div className="flex flex-col gap-4">
+                  {/* Spotify Now Playing Widget */}
                   <GlassCard className="p-3 pr-6 flex items-center gap-4 bg-black/40 border-white/10 rounded-2xl shadow-xl hover-elevate cursor-pointer transition-all duration-300" onClick={() => setActiveApp('spotify')}>
                     <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10">
                       <img src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?auto=format&fit=crop&w=100&q=80" alt="Album Cover" className="w-full h-full object-cover" />
@@ -280,6 +331,20 @@ export default function Home() {
                       <span className="text-white/60 text-xs truncate max-w-[150px]">Jade LeMac</span>
                     </div>
                     <Music className="w-4 h-4 text-green-400 ml-2 animate-pulse" />
+                  </GlassCard>
+
+                  {/* Quick Notes Widget */}
+                  <GlassCard className="p-4 bg-white/5 border-white/10 rounded-2xl w-full min-w-[280px]">
+                    <div className="flex items-center gap-2 mb-2">
+                      <StickyNote className="w-4 h-4 text-yellow-400" />
+                      <span className="text-xs uppercase tracking-widest text-white/40 font-bold">Quick Notes</span>
+                    </div>
+                    <textarea 
+                      value={quickNotes}
+                      onChange={(e) => setQuickNotes(e.target.value)}
+                      placeholder="Type a quick note..."
+                      className="w-full bg-transparent border-none text-white text-sm placeholder:text-white/20 focus:ring-0 resize-none h-20 p-0"
+                    />
                   </GlassCard>
                 </div>
               </div>
