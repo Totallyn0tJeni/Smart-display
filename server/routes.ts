@@ -34,17 +34,20 @@ async function initGpio() {
 initGpio();
 
 function applyRgbHardware(r: number, g: number, b: number) {
-  // Integrate Night Mode logic from Python script
-  if (NIGHT_MODE) {
-    r = Math.floor(r / 3);
-    g = Math.floor(g / 3);
-    b = Math.floor(b / 3);
-  }
-
-  // Common anode → 100 = off. PWM range 0-255 mapped to 0-100 duty cycle.
-  // Since 'onoff' is digital, we'll use a threshold for now (127) 
-  // but inverted for common anode logic.
-  // 1 (HIGH) is OFF for common anode, 0 (LOW) is ON.
+  // Common Anode Logic from Python script: 
+  // Duty Cycle = 100 - (color_value / 255 * 100)
+  // Since 'onoff' is digital (on/off), we map the duty cycle to a binary state.
+  // In the Python script:
+  // - 100% duty cycle (OFF for common anode) means pin is HIGH
+  // - 0% duty cycle (FULL ON for common anode) means pin is LOW
+  
+  // Note: IS_NIGHT logic is applied in the loop where r, g, b are passed to this function.
+  // The Python script dims values by 3 in night mode.
+  
+  // We'll use a threshold of 127 for digital switching:
+  // r > 127 (Bright) -> PWM Duty Cycle would be low -> Pin LOW (0)
+  // r <= 127 (Dim/Off) -> PWM Duty Cycle would be high -> Pin HIGH (1)
+  
   const rVal = r > 127 ? 0 : 1;
   const gVal = g > 127 ? 0 : 1;
   const bVal = b > 127 ? 0 : 1;
@@ -64,18 +67,19 @@ function ledHardwareLoop() {
 
     const t = Date.now() / 50; // Similar to the 0.05s sleep in original code
     const hex = state.color.replace("#", "");
-    const rBase = parseInt(hex.substring(0, 2), 16);
-    const gBase = parseInt(hex.substring(2, 4), 16);
-    const bBase = parseInt(hex.substring(4, 6), 16);
+    let rBase = parseInt(hex.substring(0, 2), 16);
+    let gBase = parseInt(hex.substring(2, 4), 16);
+    let bBase = parseInt(hex.substring(4, 6), 16);
 
-    // Sync NIGHT_MODE with app state (assuming pulse mode is night mode based on existing toggle)
-    NIGHT_MODE = state.mode === "pulse";
+    // Python script logic: Dim by 3 in night mode (mode === "pulse")
+    if (state.mode === "pulse") {
+      rBase = Math.floor(rBase / 3);
+      gBase = Math.floor(gBase / 3);
+      bBase = Math.floor(bBase / 3);
+    }
 
-    if (state.mode === "static") {
+    if (state.mode === "static" || state.mode === "pulse") {
       applyRgbHardware(rBase, gBase, bBase);
-    } else if (state.mode === "pulse") {
-      const v = Math.abs((t % 100) - 50) * 5.1; // 0-255
-      applyRgbHardware(v, v, v);
     } else if (state.mode === "fade") {
       applyRgbHardware((t * 3) % 256, (t * 5) % 256, (t * 7) % 256);
     } else if (state.mode === "sunrise") {
