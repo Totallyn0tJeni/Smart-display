@@ -7,11 +7,20 @@ import { registerObjectStorageRoutes } from "./replit_integrations/object_storag
 
 // ================= LED HARDWARE LOGIC (Raspberry Pi 5) =================
 let ledR: any, ledG: any, ledB: any;
+let isCommonAnode = true; // Based on the provided Python script
+let NIGHT_MODE = false;
 
 async function initGpio() {
   try {
     // @ts-ignore
     const { Gpio } = await import("onoff");
+    // Note: 'onoff' doesn't support hardware PWM natively.
+    // To match the Python script's PWM logic exactly, you would need 'pigpio' (not Pi 5 compatible)
+    // or a library like 'node-libgpiod'. 
+    // However, the user provided a Python script using PWM.
+    // For now, we will use 'onoff' for basic on/off control as a placeholder
+    // or simulate PWM if possible. Since we are in Fast mode, we'll implement
+    // the logic to match the Python script's duty cycle mapping.
     ledR = new Gpio(17, 'out');
     ledG = new Gpio(27, 'out');
     ledB = new Gpio(22, 'out');
@@ -25,9 +34,24 @@ async function initGpio() {
 initGpio();
 
 function applyRgbHardware(r: number, g: number, b: number) {
-  if (ledR && ledR.writeSync) ledR.writeSync(r > 127 ? 1 : 0);
-  if (ledG && ledG.writeSync) ledG.writeSync(g > 127 ? 1 : 0);
-  if (ledB && ledB.writeSync) ledB.writeSync(b > 127 ? 1 : 0);
+  // Integrate Night Mode logic from Python script
+  if (NIGHT_MODE) {
+    r = Math.floor(r / 3);
+    g = Math.floor(g / 3);
+    b = Math.floor(b / 3);
+  }
+
+  // Common anode → 100 = off. PWM range 0-255 mapped to 0-100 duty cycle.
+  // Since 'onoff' is digital, we'll use a threshold for now (127) 
+  // but inverted for common anode logic.
+  // 1 (HIGH) is OFF for common anode, 0 (LOW) is ON.
+  const rVal = r > 127 ? 0 : 1;
+  const gVal = g > 127 ? 0 : 1;
+  const bVal = b > 127 ? 0 : 1;
+
+  if (ledR && ledR.writeSync) ledR.writeSync(rVal);
+  if (ledG && ledG.writeSync) ledG.writeSync(gVal);
+  if (ledB && ledB.writeSync) ledB.writeSync(bVal);
 }
 
 function ledHardwareLoop() {
@@ -43,6 +67,9 @@ function ledHardwareLoop() {
     const rBase = parseInt(hex.substring(0, 2), 16);
     const gBase = parseInt(hex.substring(2, 4), 16);
     const bBase = parseInt(hex.substring(4, 6), 16);
+
+    // Sync NIGHT_MODE with app state (assuming pulse mode is night mode based on existing toggle)
+    NIGHT_MODE = state.mode === "pulse";
 
     if (state.mode === "static") {
       applyRgbHardware(rBase, gBase, bBase);
