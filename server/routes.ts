@@ -5,81 +5,105 @@ import { api } from "@shared/routes";
 import { z } from "zod";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 
-// ================= LED HARDWARE LOGIC (Raspberry Pi 5) =================
-let ledR: any, ledG: any, ledB: any;
+// ================= LED HARDWARE LOGIC (Strictly using Python Script) =================
+import { spawn } from "child_process";
+import axios from "axios";
+
+let pythonProcess: any;
 let isHardwareConnected = false;
 
 async function initGpio() {
   try {
-    // @ts-ignore
-    const { Gpio } = await import("onoff");
-    ledR = new Gpio(17, 'out');
-    ledG = new Gpio(27, 'out');
-    ledB = new Gpio(22, 'out');
-    isHardwareConnected = true;
-    console.log("Raspberry Pi GPIO initialized on pins 17, 27, 22");
+    // Start the Python LED service on port 6000
+    pythonProcess = spawn("python3", ["server/scripts/led_service.py"]);
+    
+    pythonProcess.stdout.on("data", (data: any) => {
+      console.log(`[LED Python] stdout: ${data}`);
+      if (data.toString().includes("Running on")) {
+        isHardwareConnected = true;
+      }
+    });
+
+    pythonProcess.stderr.on("data", (data: any) => {
+      console.error(`[LED Python] stderr: ${data}`);
+    });
+
+    pythonProcess.on("close", (code: number) => {
+      console.log(`[LED Python] process exited with code ${code}`);
+      isHardwareConnected = false;
+    });
+
+    // Brief delay to allow Python server to start
+    setTimeout(() => {
+      isHardwareConnected = true;
+    }, 2000);
+
   } catch (err) {
-    console.log("GPIO initialization failed (likely not on a Raspberry Pi or missing onoff). Using simulation mode.");
-    ledR = ledG = ledB = { writeSync: (val: number) => {} };
+    console.error("Failed to start Python LED service:", err);
     isHardwareConnected = false;
   }
 }
 
 initGpio();
 
-function applyRgbHardware(r: number, g: number, b: number) {
-  // Common Anode Logic from Python script: 
-  // Duty Cycle = 100 - (color_value / 255 * 100)
-  // Since 'onoff' is digital (on/off), we map the duty cycle to a binary state.
-  // In the Python script:
-  // - 100% duty cycle (OFF for common anode) means pin is HIGH
-  // - 0% duty cycle (FULL ON for common anode) means pin is LOW
+async function applyRgbHardware(r: number, g: number, b: number, isOn: boolean) {
+  if (!isHardwareConnected) return;
   
-  // Note: IS_NIGHT logic is applied in the loop where r, g, b are passed to this function.
-  // The Python script dims values by 3 in night mode.
-  
-  // We'll use a threshold of 127 for digital switching:
-  // r > 127 (Bright) -> PWM Duty Cycle would be low -> Pin LOW (0)
-  // r <= 127 (Dim/Off) -> PWM Duty Cycle would be high -> Pin HIGH (1)
-  
-  const rVal = r > 127 ? 0 : 1;
-  const gVal = g > 127 ? 0 : 1;
-  const bVal = b > 127 ? 0 : 1;
+  try {
+    // Call the Python service endpoints
+    await axios.post("http://localhost:6000/led", {
+      enabled: isOn,
+      color: [r, g, b]
+    });
+  } catch (err) {
+    // Silent fail if service not ready
+  }
+}
 
-  if (ledR && ledR.writeSync) ledR.writeSync(rVal);
-  if (ledG && ledG.writeSync) ledG.writeSync(gVal);
-  if (ledB && ledB.writeSync) ledB.writeSync(bVal);
+async function syncNightMode(isNight: boolean) {
+  if (!isHardwareConnected) return;
+  try {
+    await axios.post("http://localhost:6000/night", {
+      night: isNight
+    });
+  } catch (err) {
+    // Silent fail
+  }
 }
 
 function ledHardwareLoop() {
+  let lastMode: string | null = null;
+  
   setInterval(async () => {
     const state = await storage.getLedState();
-    if (!state || !state.isOn) {
-      applyRgbHardware(0, 0, 0);
+    if (!state) return;
+
+    // Sync night mode flag when it changes
+    const currentIsNight = state.mode === "pulse";
+    if (lastMode !== state.mode) {
+      await syncNightMode(currentIsNight);
+      lastMode = state.mode;
+    }
+
+    if (!state.isOn) {
+      await applyRgbHardware(0, 0, 0, false);
       return;
     }
 
-    const t = Date.now() / 50; // Similar to the 0.05s sleep in original code
+    const t = Date.now() / 50;
     const hex = state.color.replace("#", "");
     let rBase = parseInt(hex.substring(0, 2), 16);
     let gBase = parseInt(hex.substring(2, 4), 16);
     let bBase = parseInt(hex.substring(4, 6), 16);
 
-    // Python script logic: Dim by 3 in night mode (mode === "pulse")
-    if (state.mode === "pulse") {
-      rBase = Math.floor(rBase / 3);
-      gBase = Math.floor(gBase / 3);
-      bBase = Math.floor(bBase / 3);
-    }
-
     if (state.mode === "static" || state.mode === "pulse") {
-      applyRgbHardware(rBase, gBase, bBase);
+      await applyRgbHardware(rBase, gBase, bBase, true);
     } else if (state.mode === "fade") {
-      applyRgbHardware((t * 3) % 256, (t * 5) % 256, (t * 7) % 256);
+      await applyRgbHardware((t * 3) % 256, (t * 5) % 256, (t * 7) % 256, true);
     } else if (state.mode === "sunrise") {
-      applyRgbHardware(Math.min(t * 2, 255), Math.min(t, 120), Math.min(t / 3, 60));
+      await applyRgbHardware(Math.min(t * 2, 255), Math.min(t, 120), Math.min(t / 3, 60), true);
     }
-  }, 50);
+  }, 500); // Slower interval for HTTP requests to Python service
 }
 
 // Start the hardware simulation loop
