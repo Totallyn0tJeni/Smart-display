@@ -371,16 +371,15 @@ export default function Home() {
                 </div>
                 
                 <div className="flex flex-col gap-4 self-stretch">
-                  {/* Spotify Now Playing Widget */}
+                  {/* Spotify Widget - Not Playing State */}
                   <GlassCard className="p-3 pr-6 flex items-center gap-4 bg-black/40 border-white/10 rounded-2xl shadow-xl hover-elevate cursor-pointer transition-all duration-300" onClick={() => setActiveApp('spotify')}>
-                    <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10">
-                      <img src="https://i.scdn.co/image/ab67616d0000b2734616ecf6e89793746a9a8342" alt="Album Cover" className="w-full h-full object-cover" />
+                    <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10 bg-white/5 flex items-center justify-center">
+                      <Music className="w-6 h-6 text-white/20" />
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-white text-sm font-bold truncate max-w-[150px]">Lover</span>
-                      <span className="text-white/60 text-xs truncate max-w-[150px]">Taylor Swift</span>
+                      <span className="text-white/40 text-sm font-bold truncate max-w-[150px]">Not Playing</span>
+                      <span className="text-white/20 text-xs truncate max-w-[150px]">Spotify</span>
                     </div>
-                    <Music className="w-4 h-4 text-green-400 ml-2 animate-pulse" />
                   </GlassCard>
 
                   {/* Quick Notes Widget */}
