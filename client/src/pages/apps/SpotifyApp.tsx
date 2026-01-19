@@ -30,9 +30,9 @@ export function SpotifyApp({ onClose }: SpotifyAppProps) {
 
         <TabsContent value="player" className="flex-1 min-h-0 mt-0">
           <GlassCard variant="panel" className="w-full h-full overflow-hidden bg-black/40">
-            {/* Using a more dynamic-looking embed that mimics a full player better */}
+            {/* Direct Spotify Player Embed for full experience */}
             <iframe 
-              src="https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M?utm_source=generator&theme=0" 
+              src="https://open.spotify.com/embed/track/1BxfuGmsv9vSccvU0tIPpM?utm_source=generator&theme=0" 
               width="100%" 
               height="100%" 
               frameBorder="0" 

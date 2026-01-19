@@ -373,11 +373,11 @@ export default function Home() {
                   {/* Spotify Now Playing Widget */}
                   <GlassCard className="p-3 pr-6 flex items-center gap-4 bg-black/40 border-white/10 rounded-2xl shadow-xl hover-elevate cursor-pointer transition-all duration-300" onClick={() => setActiveApp('spotify')}>
                     <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10">
-                      <img src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?auto=format&fit=crop&w=100&q=80" alt="Album Cover" className="w-full h-full object-cover" />
+                      <img src="https://i.scdn.co/image/ab67616d0000b2734616ecf6e89793746a9a8342" alt="Album Cover" className="w-full h-full object-cover" />
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-white text-sm font-bold truncate max-w-[150px]">Constellations</span>
-                      <span className="text-white/60 text-xs truncate max-w-[150px]">Jade LeMac</span>
+                      <span className="text-white text-sm font-bold truncate max-w-[150px]">Lover</span>
+                      <span className="text-white/60 text-xs truncate max-w-[150px]">Taylor Swift</span>
                     </div>
                     <Music className="w-4 h-4 text-green-400 ml-2 animate-pulse" />
                   </GlassCard>
