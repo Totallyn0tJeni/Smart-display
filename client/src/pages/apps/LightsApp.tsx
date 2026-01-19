@@ -50,7 +50,15 @@ export function LightsApp({ onClose }: LightsAppProps) {
     <div className="w-full h-full p-8 md:p-12 flex flex-col md:flex-row gap-8 md:gap-16 items-center justify-center">
       <div className="flex-1 max-w-md w-full space-y-8">
         <div className="flex items-center justify-between">
-          <h2 className="text-4xl font-display text-white">Room Ambiance</h2>
+          <div className="flex flex-col">
+            <h2 className="text-4xl font-display text-white">Room Ambiance</h2>
+            <div className="flex items-center gap-2 mt-2">
+              <div className={`w-2 h-2 rounded-full ${(ledState as any)?.isHardwareConnected ? "bg-green-500 animate-pulse" : "bg-red-500"}`} />
+              <span className="text-[10px] uppercase tracking-widest text-white/40 font-bold">
+                {(ledState as any)?.isHardwareConnected ? "Hardware Connected (Pi 5)" : "Simulation Mode"}
+              </span>
+            </div>
+          </div>
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={togglePower}

@@ -7,27 +7,21 @@ import { registerObjectStorageRoutes } from "./replit_integrations/object_storag
 
 // ================= LED HARDWARE LOGIC (Raspberry Pi 5) =================
 let ledR: any, ledG: any, ledB: any;
-let isCommonAnode = true; // Based on the provided Python script
-let NIGHT_MODE = false;
+let isHardwareConnected = false;
 
 async function initGpio() {
   try {
     // @ts-ignore
     const { Gpio } = await import("onoff");
-    // Note: 'onoff' doesn't support hardware PWM natively.
-    // To match the Python script's PWM logic exactly, you would need 'pigpio' (not Pi 5 compatible)
-    // or a library like 'node-libgpiod'. 
-    // However, the user provided a Python script using PWM.
-    // For now, we will use 'onoff' for basic on/off control as a placeholder
-    // or simulate PWM if possible. Since we are in Fast mode, we'll implement
-    // the logic to match the Python script's duty cycle mapping.
     ledR = new Gpio(17, 'out');
     ledG = new Gpio(27, 'out');
     ledB = new Gpio(22, 'out');
+    isHardwareConnected = true;
     console.log("Raspberry Pi GPIO initialized on pins 17, 27, 22");
   } catch (err) {
     console.log("GPIO initialization failed (likely not on a Raspberry Pi or missing onoff). Using simulation mode.");
     ledR = ledG = ledB = { writeSync: (val: number) => {} };
+    isHardwareConnected = false;
   }
 }
 
@@ -103,7 +97,8 @@ export async function registerRoutes(
       // Initialize if empty
       state = await storage.updateLedState({});
     }
-    res.json(state);
+    // Inject hardware connection status
+    res.json({ ...state, isHardwareConnected });
   });
 
   app.post(api.led.update.path, async (req, res) => {
