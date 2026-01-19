@@ -275,7 +275,8 @@ export default function Home() {
         backgroundColor: isNightMode ? "#0a0a1a" : backgroundColor,
         backgroundImage: isNightMode ? "none" : (backgroundUrl ? `url(${backgroundUrl})` : backgroundGradient || "none"),
         backgroundSize: "cover",
-        backgroundPosition: "center"
+        backgroundPosition: "center",
+        opacity: isNightMode ? 0.4 : 1
       }}
     >
       {/* Background Dark Overlay */}
